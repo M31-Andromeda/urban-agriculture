@@ -1,0 +1,14 @@
+# Entornos virtuales
+arduino_env/
+venv/
+env/
+
+# Basura de Python y cachés
+__pycache__/
+*.pyc
+.vscode/
+
+# Basura de compilación de Arduino
+*.elf
+*.bin
+*.hex
