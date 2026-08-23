@@ -1,6 +1,7 @@
 
-#include <Wire.h>                   //
+#include <Wire.h>                   
 #include "Arduino_RouterBridge.h"   // 
+#include <bsec2.h>
 
 
 void setup() {
