@@ -2,6 +2,7 @@ from arduino.app_utils import *
 import time
 import threading
 
+LECTURE_TIME = 60*3 # 3 minuts
 
 class EstatHort:
     def __init__(self):
@@ -30,7 +31,30 @@ class EstatHort:
         self.voltatge = 0.0
 
 
-hort = EstatHort()
+@brick
+class SHT30:
+
+    @brick.loop()
+    def read(self):
+
+        data = Bridge.call("get_sht_30")
+        temp_str, hum_str = data.split(",")
+        temp = float(temp_str)
+        hum = float(hum_str)
+
+
+
+        time.sleep(LECTURE_TIME)
+
+
+
+sht30_1 = SHT30()
+
+
+#hort = EstatHort()
+
+App.run()
+
 
 
 
