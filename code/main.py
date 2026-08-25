@@ -51,10 +51,9 @@ class SHT30:
 
 
 
-sht30_1 = SHT30()
-
-
 #hort = EstatHort()
+
+sht30_1 = SHT30()
 
 App.run()
 
