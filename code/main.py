@@ -37,6 +37,8 @@ class SHT30:
     @brick.loop()
     def read(self):
 
+
+        #HACE FALTA MANEJO DE ERRORES
         data = Bridge.call("get_sht_30")
         temp_str, hum_str = data.split(",")
         temp = float(temp_str)
