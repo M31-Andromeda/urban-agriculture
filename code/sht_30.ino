@@ -17,11 +17,11 @@ String read_sht30() {
     Wire.requestFrom(SHT30_ADDR, 6);
 
     if (Wire.available() == 6) {
-        data[0] = Wire.read(); // Temperatura MSB
-        data[1] = Wire.read(); // Temperatura LSB
+        data[0] = Wire.read(); // Temperatura
+        data[1] = Wire.read(); // Temperatura
         data[2] = Wire.read(); 
-        data[3] = Wire.read(); // Humitat MSB
-        data[4] = Wire.read(); // Humitat LSB
+        data[3] = Wire.read(); // Humitat
+        data[4] = Wire.read(); // Humitat
         data[5] = Wire.read(); 
 
         uint16_t t_raw = (data[0] << 8) | data[1];
