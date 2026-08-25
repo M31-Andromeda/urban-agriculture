@@ -42,6 +42,9 @@ class SHT30:
         temp = float(temp_str)
         hum = float(hum_str)
 
+        ##
+        print(temp, hum)
+        ##
 
 
         time.sleep(LECTURE_TIME)
