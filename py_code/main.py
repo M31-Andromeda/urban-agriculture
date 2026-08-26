@@ -57,36 +57,25 @@ class SensorOrchestra:
         for sensor in self.sensors:
             sensor.read()
         
-        self.hort.in_temp, self.hort.in_hum = self.sht30.get_value()
-        self.hort.terra_hum = self.moisture_orchestra.get_value()
         
-        
+        with self.hort.lock:
+            self.hort.in_temp, self.hort.in_hum = self.sht30.get_value()
+            self.hort.terra_hum = self.moisture_orchestra.get_value()
+ 
+        # ###------testing-------------
+        # for atr, val in vars(self.hort).items():
+        #     if atr != "lock":
+        #         print(f"{atr}: {val}", end = " ")
             
-        ###------testing-------------
-        for atr, val in vars(self.hort).items():
-            if atr != "lock":
-                print(f"{atr}: {val}", end = " ")
-            
-        print()
+        # print()
 
-        ###------end-testing---------
+        # ###------end-testing---------
         
         time.sleep(c.BEAT)
-
-        
-
-               
-    
-                    
-        
 
 hort = EstatHort()
 
 sensor_orchestra = SensorOrchestra(hort)
-
-
-
-
 
 # ###----------------------------Test_Space----------------------------###
 # @brick

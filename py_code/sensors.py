@@ -52,7 +52,6 @@ class Sht30(Sensor):
             self.in_temp = float(in_temp_str)
             self.in_hum = float(in_hum_str)
 
-             
     def _on_error(self):
             self.in_temp = float('nan')
             self.in_hum = float('nan')
