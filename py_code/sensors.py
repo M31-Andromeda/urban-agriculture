@@ -9,7 +9,6 @@ logger = Logger("Sensors")
 
 class Sensor:
     _comand : str = ""
-    _lecture_time = c.BEAT
     
     def __init__(self):
         self.params = []
