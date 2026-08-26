@@ -1,5 +1,4 @@
 #include <Wire.h>                  // Std Arduino lib - I2C COM
-#include <vector>
 
 #define SHT30_ADDR 0x44
 
@@ -33,5 +32,5 @@ String read_sht30() {
         return String(temp, 2) + "," + String(hum, 2);
     }
 
-    return "None, None"; 
+    return "error"; 
 }
