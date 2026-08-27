@@ -12,12 +12,16 @@ void setup() {
     Bridge.begin(); //RPC Com
     Wire.begin();   //I2C COM
 
+
     
 
     //--------------------------PROVIDES--------------------------
-
-    Bridge.provide("get_sht_30", read_sht30);
+    Bridge.provide("get_sht30", read_sht30);
     Bridge.provide("get_moist_v1_2", read_capacitive_moisture_sensor_v1_2);
+    Bridge.provide("bme_680_ini", bme680_initialization);
+    Bridge.provide("get_bme680", read_bme680);
+
+    bme680_initialization();
 }
 
 

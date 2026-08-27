@@ -7,21 +7,21 @@ import config as c
 
 from sensors import *
 
-logger = Logger("Hort")
+logger = Logger("garden")
 
-class EstatHort:
+class GardenState:
     def __init__(self):
 
         self.lock = threading.Lock()
 
         #BME680: Colocat fora del entorn de les plantes per poder mesurar el estat ambiental general
-        self.qualitat_aire = 0.0
-        self.ambi_hum = 0.0
-        self.ambi_temp = 0.0
-        self.pressio = 0.0
-
+        self.env_temp = 0.0
+        self.env_hum = 0.0
+        self.pressure = 0.0
+        self.air_quality = 0.0
+        
         #Capacitive moisture sensor v.1.2 x3 Humitat de la terra de cultiu
-        self.terra_hum = 0.0
+        self.moist_soil = 0.0
 
         #SHT30 Mesura temperatura i Humitat, pero estara disposat entre les plantes, per veure el seu estat d'aprop
         self.in_hum = 0.0
@@ -32,13 +32,13 @@ class EstatHort:
         self.ir = 0.0
 
         #INA219 mesura intensitat i voltage del panell solar
-        self.intensitar = 0.0
-        self.voltatge = 0.0
+        self.i = 0.0
+        self.v = 0.0
        
 @brick
 class SensorOrchestra:
-    def __init__(self, hort):
-        self.hort = hort
+    def __init__(self, garden):
+        self.garden = garden
         self.sensors = []        
         
     def start(self):
@@ -51,31 +51,34 @@ class SensorOrchestra:
         self.moisture_orchestra = MoistOrchest([s1_moist, s2_moist, s3_moist])
         self.sensors.append(self.moisture_orchestra)
         
+        self.bme680 = Bme680()
+        self.sensors.append(self.bme680)
         
     @brick.loop()
     def run(self):
         for sensor in self.sensors:
             sensor.read()
         
-        
-        with self.hort.lock:
-            self.hort.in_temp, self.hort.in_hum = self.sht30.get_value()
-            self.hort.terra_hum = self.moisture_orchestra.get_value()
- 
-        # ###------testing-------------
-        # for atr, val in vars(self.hort).items():
-        #     if atr != "lock":
-        #         print(f"{atr}: {val}", end = " ")
+        with self.garden.lock:
+            self.garden.in_temp, self.garden.in_hum = self.sht30.get_value()
+            self.garden.moist_soil = self.moisture_orchestra.get_value()
+            self.garden.env_temp, self.garden.env_hum, self.garden.pressure, self.garden.air_quality = self.bme680.get_value()
             
-        # print()
+ 
+        ###------testing-------------
+        for atr, val in vars(self.garden).items():
+            if atr != "lock":
+                print(f"{atr}: {val}", end = " ")
+            
+        print()
 
-        # ###------end-testing---------
+        ###------end-testing---------
         
         time.sleep(c.BEAT)
 
-hort = EstatHort()
+garden = GardenState()
 
-sensor_orchestra = SensorOrchestra(hort)
+sensor_orchestra = SensorOrchestra(garden)
 
 # ###----------------------------Test_Space----------------------------###
 # @brick
@@ -83,7 +86,7 @@ sensor_orchestra = SensorOrchestra(hort)
     
 #     @brick.loop()
 #     def pulse(self):
-#         dato =  Bridge.call(f"get_moist_v1_2", 1)
+#         dato =  Bridge.call(f"get_bme680")
 #         print("hola")
 #         print(dato)
 #         time.sleep(2)
