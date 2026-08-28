@@ -71,6 +71,14 @@ class SensorOrchestra:
             self.garden.amb_light, self.garden.ir = self.light_sensor.get_value()
             self.garden.voltage, self.garden.current = self.ina219.get_value()
             
+        ###------testing-------------
+        for atr, val in vars(self.garden).items():
+            if atr != "lock":
+                print(f"{atr}: {val}", end = " ")
+                
+        print()
+
+        ###------end-testing---------
         
         time.sleep(c.BEAT)
 
