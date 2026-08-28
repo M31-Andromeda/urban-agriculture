@@ -2,6 +2,7 @@ from arduino.app_utils import *
 import time
 import threading
 import random
+import math
 
 import config as c
 
@@ -12,12 +13,13 @@ class Sensor:
     
     def __init__(self):
         self.params = []
-        self.data = ""
+        self.raw_data = ""
+        self.clean_data = []
 
     def read(self):
         try:
-            self.data = Bridge.call(f"{self._comand}", *self.params)
-            if self.data == "error":
+            self.raw_data = Bridge.call(f"{self._comand}", *self.params, timeout=10)
+            if self.raw_data == "error":
                 self._on_error()
             else:
                 self._parse()
@@ -27,61 +29,43 @@ class Sensor:
             self._on_error()
             
     def _parse(self):
-        pass
+        self.clean_data = tuple(float(elem) for elem in self.raw_data.split(","))
     
     def _on_error(self):
-        pass
+        self.clean_data = tuple(float('nan') for _ in range(self._expected_outputs))
         
     def get_value(self):
-        pass
+        """returns a tuple with the data parsed"""
+        return self.clean_data
 
 
 class Sht30(Sensor):
     _comand = "get_sht30"
+    _expected_outputs = 2
     
-    def __init__(self):
-        super().__init__()
-        self.in_temp = 0.0
-        self.in_hum = 0.0 
-    
-    def _parse(self):
-            in_temp_str, in_hum_str = self.data.split(",")
-            self.in_temp = float(in_temp_str)
-            self.in_hum = float(in_hum_str)
-
-    def _on_error(self):
-            self.in_temp = float('nan')
-            self.in_hum = float('nan')
-
-                    
     def get_value(self):
-        return self.in_temp, self.in_hum
-                    
+        """returns a tuple with (temperature (°C), humidity (%))"""
+        return super().get_value()
+               
                     
 class MoistV1_2(Sensor):
     _comand = "get_moist_v1_2"
+    _expected_outputs = 1
     
     def __init__(self, pin, min_val, max_val):
         super().__init__()
         self.params = [pin]
         self.min_val = min_val
         self.max_val = max_val
-        self.moist_soil = 0.0
 
     def _num_map(self, valor):
         porcentaje = ((self.max_val - valor) / (self.max_val - self.min_val)) * 100.0
         return max(0.0, min(100.0, porcentaje))
 
     def _parse(self):
-        self.moist_soil = self._num_map(float(self.data))
-        
-    def _on_error(self):
-        self.moist_soil = float('nan')
-        
-    def get_value(self):
-        return self.moist_soil
-        
-        
+        self.clean_data = tuple([self._num_map(float(self.raw_data))])
+    
+          
 class MoistOrchest:
     def __init__(self, moist_sensors):
         self.moist_sensors = moist_sensors
@@ -91,48 +75,44 @@ class MoistOrchest:
         data = []
         for s in self.moist_sensors:
             s.read()
-            data.append(s.get_value())
+            data.append(s.get_value()[0])
         self._parse(data)
             
     def _parse(self, data):
-            self.total_moist_soil = round(sum(data)/len(self.moist_sensors), 2)
+        
+        valid_data = [d for d in data if not math.isnan(d)]
+        if not valid_data:
+            self.total_moist_soil = float('nan')
+        else:
+            self.total_moist_soil = round(sum(valid_data)/len(valid_data), 2)
 
     def get_value(self):
+        """returns the average between the moisture sensors (%)"""
         return self.total_moist_soil
 
 
 class Bme680(Sensor):
     _comand = "get_bme680"
+    _expected_outputs = 4
     
-    def __init__(self):
-        super().__init__()
-        self.env_temp = 0.0
-        self.env_hum = 0.0
-        self.pressure = 0.0
-        self.air_quality = 0.0
-        
-    def _parse(self):
-        env_temp_str, env_hum_str, pressure_str, air_quality_str = self.data.split(",")
-        self.env_temp = float(env_temp_str)
-        self.env_hum = float(env_hum_str)
-        self.pressure = float(pressure_str) #hPa
-        self.air_quality = float(air_quality_str) #kohm
-        
-    def _on_error(self):
-        self.env_temp = float('nan')
-        self.env_hum = float('nan')
-        self.pressure = float('nan')
-        self.air_quality = float('nan')
-        
     def get_value(self):
-        return  (self.env_temp,
-                self.env_hum, 
-                self.pressure, 
-                self.air_quality)
-                
-
+        """returns a tuple with (temperature (°C), humidity (%), pressure (hPa), gCOV (kΩ))"""
+        return super().get_value()
     
-
-
         
+class ModulinoLight(Sensor):
+    _comand = "get_light"
+    _expected_outputs = 2
+    
+    def get_value(self):
+        """returns a tuple with (ambient light (lux), IR (raw))"""
+        return super().get_value()
+    
+class Ina219(Sensor):
+    _comand = "get_ina219"
+    _expected_outputs = 2
+    
+    def get_value(self):
+        """returns a tuple with (voltage (V), current (mA))"""
+        return super().get_value()
     

@@ -28,12 +28,12 @@ class GardenState:
         self.in_temp = 0.0
 
         #Modulino Light mesura intensitat lluminosa
-        self.light_intens = 0.0
+        self.amb_light = 0.0
         self.ir = 0.0
 
         #INA219 mesura intensitat i voltage del panell solar
-        self.i = 0.0
-        self.v = 0.0
+        self.current = 0.0
+        self.voltage = 0.0
        
 @brick
 class SensorOrchestra:
@@ -45,14 +45,20 @@ class SensorOrchestra:
         self.sht30 = Sht30()
         self.sensors.append(self.sht30)
         
-        s1_moist = MoistV1_2(0, 275, 682)
-        s2_moist = MoistV1_2(1, 290, 685)
-        s3_moist = MoistV1_2(2, 287, 683)
-        self.moisture_orchestra = MoistOrchest([s1_moist, s2_moist, s3_moist])
+        moist_sensor_list = []
+        for sensor_data in c.MOIST_SENSORS_CONFIG:
+            moist_sensor_list.append(MoistV1_2(*sensor_data))
+        self.moisture_orchestra = MoistOrchest(moist_sensor_list)
         self.sensors.append(self.moisture_orchestra)
         
         self.bme680 = Bme680()
         self.sensors.append(self.bme680)
+        
+        self.light_sensor = ModulinoLight()
+        self.sensors.append(self.light_sensor)
+        
+        self.ina219 = Ina219()
+        self.sensors.append(self.ina219)
         
     @brick.loop()
     def run(self):
@@ -63,37 +69,24 @@ class SensorOrchestra:
             self.garden.in_temp, self.garden.in_hum = self.sht30.get_value()
             self.garden.moist_soil = self.moisture_orchestra.get_value()
             self.garden.env_temp, self.garden.env_hum, self.garden.pressure, self.garden.air_quality = self.bme680.get_value()
+            self.garden.amb_light, self.garden.ir = self.light_sensor.get_value()
+            self.garden.voltage, self.garden.current = self.ina219.get_value()
             
- 
         ###------testing-------------
         for atr, val in vars(self.garden).items():
             if atr != "lock":
                 print(f"{atr}: {val}", end = " ")
-            
+                
         print()
 
         ###------end-testing---------
         
         time.sleep(c.BEAT)
 
+
+
+
 garden = GardenState()
-
 sensor_orchestra = SensorOrchestra(garden)
-
-# ###----------------------------Test_Space----------------------------###
-# @brick
-# class Beater:
-    
-#     @brick.loop()
-#     def pulse(self):
-#         dato =  Bridge.call(f"get_bme680")
-#         print("hola")
-#         print(dato)
-#         time.sleep(2)
-            
-    
-# beat = Beater()
-# ###------------------------------------------------------------------###
-        
 
 App.run()
