@@ -1,3 +1,6 @@
+
+from pathlib import Path
+
 ###-----------------------CONFIG PARAMS-----------------------###
 
 BEAT = 4 # 3 minuts
@@ -7,3 +10,7 @@ MOIST_SENSORS_CONFIG = [
     (1, 290, 685), # Sensor 2
     (2, 287, 683)  # Sensor 3
 ]
+
+
+parent = Path(__file__).resolve().parent.parent
+data_directory = parent / "data" 

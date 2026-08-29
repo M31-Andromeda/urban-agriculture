@@ -59,8 +59,8 @@ class MoistV1_2(Sensor):
         self.max_val = max_val
 
     def _num_map(self, valor):
-        porcentaje = ((self.max_val - valor) / (self.max_val - self.min_val)) * 100.0
-        return max(0.0, min(100.0, porcentaje))
+        percentatge = ((self.max_val - valor) / (self.max_val - self.min_val)) * 100.0
+        return max(0.0, min(100.0, percentatge))
 
     def _parse(self):
         self.clean_data = tuple([self._num_map(float(self.raw_data))])
@@ -79,15 +79,15 @@ class MoistOrchest:
         self._parse(data)
             
     def _parse(self, data):
-        
-        valid_data = [d for d in data if not math.isnan(d)]
+        self.temporal = data
+        valid_data = [d for d in data if not math.isnan(d) and d < 100 and d > 0]
         if not valid_data:
-            self.total_moist_soil = float('nan')
+            self.total_moist_soil = tuple([float('nan')])
         else:
-            self.total_moist_soil = round(sum(valid_data)/len(valid_data), 2)
+            self.total_moist_soil = tuple([round(sum(valid_data)/len(valid_data), 2)])
 
     def get_value(self):
-        """returns the average between the moisture sensors (%)"""
+        """returns a tuple with the average between the moisture sensors (%)"""
         return self.total_moist_soil
 
 
@@ -96,7 +96,7 @@ class Bme680(Sensor):
     _expected_outputs = 4
     
     def get_value(self):
-        """returns a tuple with (temperature (°C), humidity (%), pressure (hPa), gCOV (kΩ))"""
+        """returns a tuple with (temperature (°C), humidity (%), pressure (hPa), VOC (kΩ))"""
         return super().get_value()
     
         
@@ -116,3 +116,41 @@ class Ina219(Sensor):
         """returns a tuple with (voltage (V), current (mA))"""
         return super().get_value()
     
+    
+    
+class SensorOrchestra:
+    def __init__(self, garden):
+        self.garden = garden
+        self.sensors = []        
+        
+    def start(self):
+        self.sht30 = Sht30()
+        self.sensors.append(self.sht30)
+        
+        moist_sensor_list = []
+        for sensor_data in c.MOIST_SENSORS_CONFIG:
+            moist_sensor_list.append(MoistV1_2(*sensor_data))
+        self.moisture_orchestra = MoistOrchest(moist_sensor_list)
+        self.sensors.append(self.moisture_orchestra)
+        
+        self.bme680 = Bme680()
+        self.sensors.append(self.bme680)
+        
+        self.light_sensor = ModulinoLight()
+        self.sensors.append(self.light_sensor)
+        
+        self.ina219 = Ina219()
+        self.sensors.append(self.ina219)
+        
+        
+    def run(self):
+        for sensor in self.sensors:
+            sensor.read()
+        
+        with self.garden.lock:
+            self.garden.in_temp, self.garden.in_hum = self.sht30.get_value()
+            self.garden.moist_soil = self.moisture_orchestra.get_value()[0]
+            self.garden.env_temp, self.garden.env_hum, self.garden.pressure, self.garden.air_quality = self.bme680.get_value()
+            self.garden.amb_light, self.garden.ir = self.light_sensor.get_value()
+            self.garden.voltage, self.garden.current = self.ina219.get_value()
+        
