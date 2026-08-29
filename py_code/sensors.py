@@ -120,10 +120,10 @@ class Ina219(Sensor):
     
 class SensorOrchestra:
     def __init__(self, garden):
+        
         self.garden = garden
         self.sensors = []        
         
-    def start(self):
         self.sht30 = Sht30()
         self.sensors.append(self.sht30)
         

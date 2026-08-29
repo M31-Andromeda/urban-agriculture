@@ -46,9 +46,7 @@ class Director:
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
         
-        #----------starts----------#
-        self.sensor_orchestra.start()
-        
+                
     @brick.loop
     def run(self):        
         self.sensor_orchestra.run()
