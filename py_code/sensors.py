@@ -1,7 +1,4 @@
 from arduino.app_utils import *
-import time
-import threading
-import random
 import math
 
 import config as c
@@ -79,8 +76,8 @@ class MoistOrchest:
         self._parse(data)
             
     def _parse(self, data):
-        self.temporal = data
         valid_data = [d for d in data if not math.isnan(d) and d < 100 and d > 0]
+        #print(data)
         if not valid_data:
             self.total_moist_soil = tuple([float('nan')])
         else:

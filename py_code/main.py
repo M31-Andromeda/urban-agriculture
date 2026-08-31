@@ -55,10 +55,6 @@ class Director:
         
         time.sleep(c.BEAT)
         
-        
-
-
-
 
 garden = GardenState()
 director = Director(garden)
