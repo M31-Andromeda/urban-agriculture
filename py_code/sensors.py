@@ -29,12 +29,15 @@ class Sensor:
         
         
     def _parse(self):
+        #Splits the string containing the data collected by the sensor in the Bridge.call() into variables
         pass
     
     def _on_error(self):
+        #Invalidates the data in case of an error in the sensor 
         self.data = float('nan')
         
     def get_value(self):
+        #Returns the current data stored in the variables (once already extracted form the .data string)
         pass
 
 
@@ -62,11 +65,19 @@ class Sht30(Sensor):
                     
 class MoistV1_2(Sensor):
     _comand = "get_moist_v1_2"
+
     def __init__(self, pin, min_val, max_val):
+
         super().__init__()
+
         self.params = [pin]
-        self.min_val = min_val
+
+
+        #Threshold values to check the incoming data
+        self.min_val = min_val 
         self.max_val = max_val
+
+        #The resulting data
         self.clean_data = 0.0
 
     def _num_map(self, valor):
