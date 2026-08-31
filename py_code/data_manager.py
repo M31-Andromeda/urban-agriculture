@@ -3,8 +3,12 @@ import csv
 import os
 from datetime import datetime
 from pathlib import Path
+
 import requests #https connection
 import json
+
+
+from zoneinfo import ZoneInfo
 
 
 import config as c
@@ -12,7 +16,7 @@ import config as c
 
 # --- DEPARTAMENTO 5: GESTIÓN DE DATOS ---
 class DataOrchestra:
-    def __init__(self, garden, max_rows=10):
+    def __init__(self, garden, max_rows=c.rows_logged):
         self.garden = garden
         
         self.filepath = c.data_directory / "sensors_data.csv"
@@ -47,7 +51,7 @@ class DataOrchestra:
                 for row in reader:
                     rows.append(row)
 
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
         
         with self.garden.lock:
             new_row = [
