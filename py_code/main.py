@@ -51,7 +51,6 @@ class Director:
     def run(self):        
         self.sensor_orchestra.run()
         self.data_orchestra.save_local()
-
         self.data_orchestra.save_online()
         
         
