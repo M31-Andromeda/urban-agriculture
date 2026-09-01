@@ -24,8 +24,8 @@ class GardenState:
         self.moist_soil = 0.0
 
         #SHT30 Mesura temperatura i Humitat, pero estara disposat entre les plantes, per veure el seu estat d'aprop
-        self.in_temp = 0.0
-        self.in_hum = 0.0
+        self.plants_temp = 0.0
+        self.plants_hum = 0.0
 
         #Modulino Light mesura intensitat lluminosa
         self.amb_light = 0.0

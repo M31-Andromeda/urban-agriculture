@@ -50,13 +50,8 @@ class MoistV1_2(Sensor):
     _expected_outputs = 1
     
     def __init__(self, pin, min_val, max_val):
-
         super().__init__()
-
         self.params = [pin]
-
-
-        #Threshold values to check the incoming data
         self.min_val = min_val 
         self.max_val = max_val
 
@@ -150,7 +145,7 @@ class SensorOrchestra:
             sensor.read()
         
         with self.garden.lock:
-            self.garden.in_temp, self.garden.in_hum = self.sht30.get_value()
+            self.garden.plants_temp, self.garden.plants_hum = self.sht30.get_value()
             self.garden.moist_soil = self.moisture_orchestra.get_value()[0]
             self.garden.env_temp, self.garden.env_hum, self.garden.pressure, self.garden.air_quality = self.bme680.get_value()
             self.garden.amb_light, self.garden.ir = self.light_sensor.get_value()

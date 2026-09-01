@@ -22,19 +22,25 @@ class DataOrchestra:
         self.filepath = c.data_directory / "sensors_data.csv"
         self.max_rows = max_rows
         self.headers = [
-            "Time", "Env_temperature", "Env_Humidity", "Pressure",
-            "Air_Quality_(VOC)", "Soil_Moisture", "Inside_Temperature", "Inside_Humidity",
-            "Light_intensity", "IR", "Solar_Current", "Solar_Voltage"
+            "Time", "Env_temperature (°C)", "Env_Humidity (%)", "Pressure (hPa)",
+            "Air_Quality_(VOC)", "Soil_Moisture (%)", "Plants_temp (°C)", "Plants_hum (%)",
+            "Light_intensity (lux)", "IR (raw)", "Solar_Current (mA)", "Solar_Voltage (V)"
         ]
+        
+        self.data = dict(vars(self.garden))
+        
+    def actualize_data(self):
+        """Updates the data stored in GardenState, asumes that the data is already updated"""
+        with self.garden.lock:
+            self.data = dict(vars(self.garden))
+            self.data.pop("lock")
 
     def save_online(self):
         """Saves the data stored in GardenState, asumes that the data is already updated"""
 
         try:
-            data = dict(vars(self.garden)) 
-            data.pop("lock")
-
-            response = requests.post(c.URL_APPSCRIPT, json = data, allow_redirects = True)
+            self.actualize_data()
+            response = requests.post(c.URL_APPSCRIPT, json = self.data, allow_redirects = True)
 
         except Exception as e:
             print("Error en la conexión:", e)
@@ -53,23 +59,8 @@ class DataOrchestra:
 
         now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
         
-        with self.garden.lock:
-            new_row = [
-                now,
-                self.garden.env_temp,
-                self.garden.env_hum,
-                self.garden.pressure,
-                self.garden.air_quality,
-                self.garden.moist_soil,
-                self.garden.in_temp,
-                self.garden.in_hum,
-                self.garden.amb_light,
-                self.garden.ir,
-                self.garden.current,
-                self.garden.voltage
-            ]
-            
-        rows.append(new_row)
+        self.actualize_data()
+        rows.append([now] + list(self.data.values()))
         
         if len(rows) > self.max_rows:
             rows = rows[-self.max_rows:]
