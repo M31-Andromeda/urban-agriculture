@@ -7,11 +7,12 @@ logger = Logger("Sensors")
 
 class Sensor:
     _comand : str = ""
+    _keys : tuple = tuple()
     
     def __init__(self):
         self.params = []
         self.raw_data = ""
-        self.clean_data = []
+        self.clean_data = dict()
 
     def read(self):
         try:
@@ -26,28 +27,33 @@ class Sensor:
             self._on_error()
             
     def _parse(self):
-        self.clean_data = tuple(float(elem) for elem in self.raw_data.split(","))
+        values = [self._map(float(value)) for value in self.raw_data.split(",")]
+        
+        if len(values) == len(self._keys):
+            self.clean_data = dict(zip(self._keys, values))
+            
+        else:
+            self._on_error()
     
     def _on_error(self):
-        self.clean_data = tuple(float('nan') for _ in range(self._expected_outputs))
+        self.clean_data = {key: float('nan') for key in self._keys}
         
     def get_value(self):
-        """returns a tuple with the data parsed"""
+        """returns a dictionary with the data parsed"""
         return self.clean_data
+    
+    def _map(self, value):
+        return value
 
 
 class Sht30(Sensor):
     _comand = "get_sht30"
-    _expected_outputs = 2
-    
-    def get_value(self):
-        """returns a tuple with (temperature (°C), humidity (%))"""
-        return super().get_value()
-               
+    _keys = ("Plants_temp_(°C)", "Plants_hum_(%)")
+          
                     
 class MoistV1_2(Sensor):
     _comand = "get_moist_v1_2"
-    _expected_outputs = 1
+    _keys = ("Soil_Moisture_(%)",)
     
     def __init__(self, pin, min_val, max_val):
         super().__init__()
@@ -55,99 +61,71 @@ class MoistV1_2(Sensor):
         self.min_val = min_val 
         self.max_val = max_val
 
-    def _num_map(self, valor):
-        percentatge = ((self.max_val - valor) / (self.max_val - self.min_val)) * 100.0
+    def _map(self, value):
+        percentatge = ((self.max_val - value) / (self.max_val - self.min_val)) * 100.0
         return max(0.0, min(100.0, percentatge))
 
-    def _parse(self):
-        self.clean_data = tuple([self._num_map(float(self.raw_data))])
-    
-          
+       
 class MoistOrchest:
     def __init__(self, moist_sensors):
         self.moist_sensors = moist_sensors
-        self.total_moist_soil = 0.0
+        self.clean_data = (0.0,)
+        self.raw_data = []
           
     def read(self):
-        data = []
+        self.raw_data = []
         for s in self.moist_sensors:
             s.read()
-            data.append(s.get_value()[0])
-        self._parse(data)
+            self.raw_data.append(s.get_value()["Soil_Moisture_(%)"])
+        self._parse()
             
-    def _parse(self, data):
-        valid_data = [d for d in data if not math.isnan(d) and d < 100 and d > 0]
-        #print(data)
+    def _parse(self):
+        valid_data = [d for d in self.raw_data if not math.isnan(d) and d < 100 and d > 0]
+        #print(self.raw_data)
         if not valid_data:
-            self.total_moist_soil = tuple([float('nan')])
+            self.clean_data = {"Soil_Moisture_(%)": float('nan')}
         else:
-            self.total_moist_soil = tuple([round(sum(valid_data)/len(valid_data), 2)])
+            self.clean_data = {"Soil_Moisture_(%)": round(sum(valid_data)/len(valid_data), 2)}
 
     def get_value(self):
-        """returns a tuple with the average between the moisture sensors (%)"""
-        return self.total_moist_soil
+        return self.clean_data
 
 
 class Bme680(Sensor):
     _comand = "get_bme680"
-    _expected_outputs = 4
+    _keys = ("Env_temperature_(°C)", "Env_Humidity_(%)", "Pressure_(hPa)") 
     
-    def get_value(self):
-        """returns a tuple with (temperature (°C), humidity (%), pressure (hPa), VOC (kΩ))"""
-        return super().get_value()
     
-        
 class ModulinoLight(Sensor):
     _comand = "get_light"
-    _expected_outputs = 2
+    _keys = ("Light_intensity_(lux)", "IR_(raw)")
     
-    def get_value(self):
-        """returns a tuple with (ambient light (lux), IR (raw))"""
-        return super().get_value()
     
 class Ina219(Sensor):
     _comand = "get_ina219"
-    _expected_outputs = 2
-    
-    def get_value(self):
-        """returns a tuple with (voltage (V), current (mA))"""
-        return super().get_value()
-    
-    
-    
+    _keys = ("Voltage_(V)", "Current_(mA)")
+      
+      
 class SensorOrchestra:
     def __init__(self, garden):
         
         self.garden = garden
-        self.sensors = []        
-        
-        self.sht30 = Sht30()
-        self.sensors.append(self.sht30)
         
         moist_sensor_list = []
-        for sensor_data in c.MOIST_SENSORS_CONFIG:
-            moist_sensor_list.append(MoistV1_2(*sensor_data))
-        self.moisture_orchestra = MoistOrchest(moist_sensor_list)
-        self.sensors.append(self.moisture_orchestra)
-        
-        self.bme680 = Bme680()
-        self.sensors.append(self.bme680)
-        
-        self.light_sensor = ModulinoLight()
-        self.sensors.append(self.light_sensor)
-        
-        self.ina219 = Ina219()
-        self.sensors.append(self.ina219)
-        
+        for sensor_config in c.MOIST_SENSORS_CONFIG:
+            moist_sensor_list.append(MoistV1_2(*sensor_config))
+
+        self.sensors = [Sht30(),
+                        MoistOrchest(moist_sensor_list),
+                        Bme680(),
+                        ModulinoLight(),
+                        Ina219()]        
         
     def run(self):
         for sensor in self.sensors:
             sensor.read()
         
         with self.garden.lock:
-            self.garden.plants_temp, self.garden.plants_hum = self.sht30.get_value()
-            self.garden.moist_soil = self.moisture_orchestra.get_value()[0]
-            self.garden.env_temp, self.garden.env_hum, self.garden.pressure, self.garden.air_quality = self.bme680.get_value()
-            self.garden.amb_light, self.garden.ir = self.light_sensor.get_value()
-            self.garden.voltage, self.garden.current = self.ina219.get_value()
+            for sensor in self.sensors:
+                self.garden.sensors_readings.update(sensor.get_value())
         

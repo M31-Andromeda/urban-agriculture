@@ -21,7 +21,7 @@ String bme680_initialization() {
     bme.setPressureOversampling(BME680_OS_4X);
     bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
 
-    bme.setGasHeater(320, 150); 
+    bme.setGasHeater(0, 0); 
 
     return "ok";
 }
@@ -33,6 +33,5 @@ String read_bme680() {
 
     return  String(bme.temperature, 2) + "," + 
             String(bme.humidity, 2) + "," + 
-            String(bme.pressure / 100.0, 2) + "," + 
-            String(bme.gas_resistance / 1000.0, 2);
+            String(bme.pressure / 100.0, 2);
 }

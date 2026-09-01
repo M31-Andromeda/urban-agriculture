@@ -3,37 +3,30 @@ import csv
 import os
 from datetime import datetime
 from pathlib import Path
-
-import requests #https connection
-import json
-
-
 from zoneinfo import ZoneInfo
+import requests 
+import json
 
 
 import config as c
 
 
-# --- DEPARTAMENTO 5: GESTIÓN DE DATOS ---
 class DataOrchestra:
     def __init__(self, garden, max_rows=c.rows_logged):
         self.garden = garden
         
         self.filepath = c.data_directory / "sensors_data.csv"
         self.max_rows = max_rows
-        self.headers = [
-            "Time", "Env_temperature (°C)", "Env_Humidity (%)", "Pressure (hPa)",
-            "Air_Quality_(VOC)", "Soil_Moisture (%)", "Plants_temp (°C)", "Plants_hum (%)",
-            "Light_intensity (lux)", "IR (raw)", "Solar_Current (mA)", "Solar_Voltage (V)"
-        ]
+
         
-        self.data = dict(vars(self.garden))
+        self.headers = ["Time"] + list(self.garden.keys)
+        
+        self.data = dict()
         
     def actualize_data(self):
         """Updates the data stored in GardenState, asumes that the data is already updated"""
         with self.garden.lock:
-            self.data = dict(vars(self.garden))
-            self.data.pop("lock")
+            self.data = self.garden.sensors_readings.copy()
 
     def save_online(self):
         """Saves the data stored in GardenState, asumes that the data is already updated"""
@@ -44,8 +37,6 @@ class DataOrchestra:
 
         except Exception as e:
             print("Error en la conexión:", e)
-
-
 
     def save_local(self):
         rows = []
@@ -58,9 +49,8 @@ class DataOrchestra:
                     rows.append(row)
 
         now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
-        
         self.actualize_data()
-        rows.append([now] + list(self.data.values()))
+        rows.append([now] + [self.data[key] for key in self.garden.keys])
         
         if len(rows) > self.max_rows:
             rows = rows[-self.max_rows:]

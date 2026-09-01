@@ -13,29 +13,12 @@ class GardenState:
     def __init__(self):
 
         self.lock = threading.Lock()
-
-        #BME680: Colocat fora del entorn de les plantes per poder mesurar el estat ambiental general
-        self.env_temp = 0.0
-        self.env_hum = 0.0
-        self.pressure = 0.0
-        self.air_quality = 0.0
+        self.keys = ('Env_temperature_(°C)', 'Env_Humidity_(%)', 'Pressure_(hPa)', 
+                     'Soil_Moisture_(%)', 'Plants_temp_(°C)', 'Plants_hum_(%)', 'Light_intensity_(lux)', 
+                     'IR_(raw)', 'Current_(mA)', 'Voltage_(V)')
         
-        #Capacitive moisture sensor v.1.2 x3 Humitat de la terra de cultiu
-        self.moist_soil = 0.0
-
-        #SHT30 Mesura temperatura i Humitat, pero estara disposat entre les plantes, per veure el seu estat d'aprop
-        self.plants_temp = 0.0
-        self.plants_hum = 0.0
-
-        #Modulino Light mesura intensitat lluminosa
-        self.amb_light = 0.0
-        self.ir = 0.0
-
-        #INA219 mesura intensitat i voltage del panell solar
-        self.current = 0.0
-        self.voltage = 0.0
-       
-
+        self.sensors_readings = {key : 0.0 for key in self.keys}
+    
 @brick        
 class Director:
     def __init__(self, garden):
@@ -52,13 +35,9 @@ class Director:
         self.sensor_orchestra.run()
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
-        
-        
+    
         time.sleep(c.BEAT)
         
-
 garden = GardenState()
 director = Director(garden)
-
-
 App.run()

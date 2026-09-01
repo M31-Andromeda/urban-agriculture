@@ -3,7 +3,7 @@ from pathlib import Path
 
 ###-----------------------CONFIG PARAMS-----------------------###
 
-BEAT = 5*60 # 30 minuts (pendiente de cambiar a 30 minutos para la versión definitiva)
+BEAT = 10 # 30 minuts (pendiente de cambiar a 30 minutos para la versión definitiva)
 
 MOIST_SENSORS_CONFIG = [
     (0, 275, 682), # Sensor 1
