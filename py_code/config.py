@@ -10,6 +10,8 @@ MOIST_SENSORS_CONFIG = [
     (1, 290, 685), # Sensor 2
     (2, 287, 683)  # Sensor 3
 ]
+WATER_PUMP_PIN = 6
+FANS_PIN = 5
 
 #To conect with the script to update the google sheet
 URL_APPSCRIPT = "https://script.google.com/macros/s/AKfycbyFNCn9OWuZSEPUOSEIZhJtWSEGQWEd3B1YFfZUxOJlJJaprr39rMuThdxxp7qogdQUbQ/exec" 

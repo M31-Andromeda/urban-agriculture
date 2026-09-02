@@ -4,6 +4,7 @@ import threading
 
 import config as c
 
+from actuators import ActuatorOrchestra
 from sensors import SensorOrchestra
 from data_manager import DataOrchestra
 
@@ -36,6 +37,7 @@ class Director:
         #----------instantiations----------#
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
+        self.actuator_orchestra = ActuatorOrchestra()
                
     @brick.loop
     def run(self):

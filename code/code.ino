@@ -28,11 +28,14 @@ void setup() {
     Bridge.provide("get_ina219", read_ina219);
     Bridge.provide("ina219_ini", ina219_initialization);
 
+    Bridge.provide("set_state", set_actuator);
+
 
     //--------------------------INITIALIZATORS--------------------------
     bme680_initialization();
     modulino_light_initialization();
     ina219_initialization();
+    actuator_initialization();
 }
 
 
