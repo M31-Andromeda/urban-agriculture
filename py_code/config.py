@@ -18,4 +18,4 @@ URL_APPSCRIPT = "https://script.google.com/macros/s/AKfycbyFNCn9OWuZSEPUOSEIZhJt
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data" 
 
-rows_logged = 150
+rows_logged = 5

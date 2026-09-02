@@ -13,9 +13,9 @@ class GardenState:
     def __init__(self):
 
         self.lock = threading.Lock()
-        self.keys = ('Env_temperature_(°C)', 'Env_Humidity_(%)', 'Pressure_(hPa)', 
-                     'Soil_Moisture_(%)', 'Plants_temp_(°C)', 'Plants_hum_(%)', 'Light_intensity_(lux)', 
-                     'IR_(raw)', 'Current_(mA)', 'Voltage_(V)')
+        self.keys = ('env_temperature_(°C)', 'env_humidity_(%)', 'pressure_(hPa)', 
+                     'soil_moisture_(%)', 'plants_temp_(°C)', 'plants_hum_(%)', 'light_intensity_(lux)', 
+                     'ir_(raw)', 'current_(mA)', 'voltage_(V)')
         
         self.sensors_readings = {key : 0.0 for key in self.keys}
     

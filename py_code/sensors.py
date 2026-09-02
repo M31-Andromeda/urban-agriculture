@@ -27,12 +27,15 @@ class Sensor:
             self._on_error()
             
     def _parse(self):
-        values = [self._map(float(value)) for value in self.raw_data.split(",")]
-        
-        if len(values) == len(self._keys):
-            self.clean_data = dict(zip(self._keys, values))
-            
-        else:
+        try:
+            values = [self._map(float(value)) for value in self.raw_data.split(",")]
+            if len(values) == len(self._keys):
+                self.clean_data = dict(zip(self._keys, values))
+            else:
+                self._on_error()
+                
+        except ValueError as e:
+            logger.error(f"{self.__class__.__name__}: {e}")
             self._on_error()
     
     def _on_error(self):
@@ -48,12 +51,12 @@ class Sensor:
 
 class Sht30(Sensor):
     _comand = "get_sht30"
-    _keys = ("Plants_temp_(°C)", "Plants_hum_(%)")
+    _keys = ("plants_temp_(°C)", "plants_hum_(%)")
           
                     
 class MoistV1_2(Sensor):
     _comand = "get_moist_v1_2"
-    _keys = ("Soil_Moisture_(%)",)
+    _keys = ("soil_moisture_(%)",)
     
     def __init__(self, pin, min_val, max_val):
         super().__init__()
@@ -76,16 +79,16 @@ class MoistOrchest:
         self.raw_data = []
         for s in self.moist_sensors:
             s.read()
-            self.raw_data.append(s.get_value()["Soil_Moisture_(%)"])
+            self.raw_data.append(s.get_value()["soil_moisture_(%)"])
         self._parse()
             
     def _parse(self):
         valid_data = [d for d in self.raw_data if not math.isnan(d) and d < 100 and d > 0]
         #print(self.raw_data)
         if not valid_data:
-            self.clean_data = {"Soil_Moisture_(%)": float('nan')}
+            self.clean_data = {"soil_moisture_(%)": float('nan')}
         else:
-            self.clean_data = {"Soil_Moisture_(%)": round(sum(valid_data)/len(valid_data), 2)}
+            self.clean_data = {"soil_moisture_(%)": round(sum(valid_data)/len(valid_data), 2)}
 
     def get_value(self):
         return self.clean_data
@@ -93,17 +96,17 @@ class MoistOrchest:
 
 class Bme680(Sensor):
     _comand = "get_bme680"
-    _keys = ("Env_temperature_(°C)", "Env_Humidity_(%)", "Pressure_(hPa)") 
+    _keys = ("env_temperature_(°C)", "env_humidity_(%)", "pressure_(hPa)") 
     
     
 class ModulinoLight(Sensor):
     _comand = "get_light"
-    _keys = ("Light_intensity_(lux)", "IR_(raw)")
+    _keys = ("light_intensity_(lux)", "ir_(raw)")
     
     
 class Ina219(Sensor):
     _comand = "get_ina219"
-    _keys = ("Voltage_(V)", "Current_(mA)")
+    _keys = ("voltage_(V)", "current_(mA)")
       
       
 class SensorOrchestra:
