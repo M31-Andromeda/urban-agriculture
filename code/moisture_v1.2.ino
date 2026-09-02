@@ -26,6 +26,5 @@ String read_capacitive_moisture_sensor_v1_2(int pin_index) {
     float average = (float)sum / num_iters;
 
 
-
     return String(average, 2);
 }

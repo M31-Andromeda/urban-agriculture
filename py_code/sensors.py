@@ -73,8 +73,8 @@ class MoistV1_2(Sensor):
         self.max_val = max_val
 
     def _map(self, value):
-        percentatge = ((self.max_val - value) / (self.max_val - self.min_val)) * 100.0
-        return max(0.0, min(100.0, percentatge))
+        percentage = ((self.max_val - value) / (self.max_val - self.min_val)) * 100.0
+        return max(0.0, min(100.0, percentage))
 
        
 class MoistOrchest:
@@ -96,7 +96,7 @@ class MoistOrchest:
             self.clean_data = {"soil_moisture_(%)": float('nan')}
             
     def _parse(self):
-        valid_data = [d for d in self.raw_data if not math.isnan(d) and d < 100 and d > 0]
+        valid_data = [d for d in self.raw_data if not math.isnan(d)]
         #print(self.raw_data)
         if not valid_data:
             self.clean_data = {"soil_moisture_(%)": float('nan')}
@@ -147,7 +147,7 @@ class SensorOrchestra:
         
         for sensor in self.sensors:
             sensor.read()
-        logger.info(f"Sensors read completed.")
+        logger.info(f"Sensors reading completed.")
         
         with self.garden.lock:
             for sensor in self.sensors:

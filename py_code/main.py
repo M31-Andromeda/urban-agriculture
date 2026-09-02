@@ -7,7 +7,7 @@ import config as c
 from sensors import SensorOrchestra
 from data_manager import DataOrchestra
 
-logger = Logger("garden")
+logger = Logger("Garden")
 
 class GardenState:
     """Class to hold the state of the garden, including sensor readings and a lock for thread-safe access."""
@@ -36,8 +36,7 @@ class Director:
         #----------instantiations----------#
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
-        
-                
+               
     @brick.loop
     def run(self):
         """Main loop that continuously executes all the modules, and waits for the next cycle based on the configured beat interval."""        

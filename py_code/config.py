@@ -3,7 +3,7 @@ from pathlib import Path
 
 ###-----------------------CONFIG PARAMS-----------------------###
 
-BEAT = 10 # 30 minuts (pendiente de cambiar a 30 minutos para la versión definitiva)
+BEAT = 5*60 # 30 minuts (pendiente de cambiar a 30 minutos para la versión definitiva)
 
 MOIST_SENSORS_CONFIG = [
     (0, 275, 682), # Sensor 1
@@ -18,4 +18,4 @@ URL_APPSCRIPT = "https://script.google.com/macros/s/AKfycbyFNCn9OWuZSEPUOSEIZhJt
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data" 
 
-rows_logged = 5
+rows_logged = 15

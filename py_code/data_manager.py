@@ -16,7 +16,8 @@ class DataOrchestra:
     def __init__(self, garden, max_rows=c.rows_logged):
         """Initializes the DataOrchestra with a reference to the GardenState, the file path for local data storage, and the maximum number of rows to keep in the local CSV file."""
         self.garden = garden
-        self.filepath = c.data_directory / "sensors_data.csv"
+        self.file_name = "sensors_data.csv"
+        self.filepath = c.data_directory / self.file_name
         self.max_rows = max_rows
         self.rows_num = self._count_csv_rows()
         self.headers = ["Time"] + list(self.garden.keys)
@@ -80,7 +81,7 @@ class DataOrchestra:
                 
                 self.rows_num += 1
 
-            logger.info(f"Data saved locally at {self.filepath}. Current number of rows: {self.rows_num}")
+            logger.info(f"Data saved locally at {self.file_name}. Current number of rows: {self.rows_num}")
             
         except Exception as e:
             logger.error(f"Error saving data locally: {e}")
