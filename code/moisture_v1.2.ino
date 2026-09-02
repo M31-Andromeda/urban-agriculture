@@ -25,9 +25,6 @@ String read_capacitive_moisture_sensor_v1_2(int pin_index) {
     
     float average = (float)sum / num_iters;
 
-    if (average < 50 || average > 950) {
-        return "error";
-    }
 
 
     return String(average, 2);
