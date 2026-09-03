@@ -97,7 +97,7 @@ class MoistOrchest:
             
     def _parse(self):
         valid_data = [d for d in self.raw_data if not math.isnan(d)]
-        #print(self.raw_data)
+        #logger.info(self.raw_data)
         if not valid_data:
             self.clean_data = {"soil_moisture_(%)": float('nan')}
         else:
@@ -120,9 +120,9 @@ class ModulinoLight(Sensor):
     
     
 class Ina219(Sensor):
-    """ INA219 sensor class for reading voltage and current data."""
+    """ INA219 sensor class for reading voltage, current and power data."""
     _command = "get_ina219"
-    _keys = ("voltage_(V)", "current_(mA)")
+    _keys = ("voltage_(V)", "current_(mA)", "power_(W)")
       
       
 class SensorOrchestra:

@@ -32,6 +32,8 @@ class Actuator:
     def _on_error(self):
         logger.error(f"The state of the actuator {self.name} could not be modified.")
         
+    def get_state(self):
+        return self.state
         
         
 class ActuatorOrchestra:

@@ -42,7 +42,7 @@ class DataOrchestra:
         """Saves the data online in google servers"""
         try:
             self.update_data()
-            response = requests.post(c.URL_APPSCRIPT, json = self.data, allow_redirects = True, timeout = 20)
+            response = requests.post(c.URL_APPSCRIPT, json = self.data, allow_redirects = True)
             
             if response.status_code == 200:
                 logger.info("Data successfully sent to the server.")

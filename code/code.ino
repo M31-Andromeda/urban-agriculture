@@ -28,7 +28,7 @@ void setup() {
     Bridge.provide("get_ina219", read_ina219);
     Bridge.provide("ina219_ini", ina219_initialization);
 
-    Bridge.provide("set_state", set_actuator);
+    Bridge.provide("set_actuator", set_actuator);
 
 
     //--------------------------INITIALIZATORS--------------------------

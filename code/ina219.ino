@@ -19,6 +19,8 @@ String ina219_initialization() {
 String read_ina219() {
     float voltage_V = ina219.getBusVoltage_V();
     float current_mA = ina219.getCurrent_mA();
+
+    float power_W = voltage_V * (current_mA / 1000.0); // Convert mA to A for power calculation
     
-    return String(voltage_V, 2) + "," + String(current_mA, 2);
+    return String(voltage_V, 2) + "," + String(current_mA, 2) + "," + String(power_W, 2);
 }

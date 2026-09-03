@@ -18,7 +18,7 @@ class GardenState:
         self.lock = threading.Lock()
         self.keys = ('env_temperature_(°C)', 'env_humidity_(%)', 'pressure_(hPa)', 
                      'soil_moisture_(%)', 'plants_temp_(°C)', 'plants_hum_(%)', 'light_intensity_(lux)', 
-                     'ir_(raw)', 'current_(mA)', 'voltage_(V)')
+                     'ir_(raw)', 'current_(mA)', 'voltage_(V)', 'power_(W)')
         
         self.sensors_readings = {key : 0.0 for key in self.keys}
     
@@ -47,6 +47,15 @@ class Director:
         self.sensor_orchestra.run()
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
+        
+        # ###-----------------testing_actuators
+        # state = self.actuator_orchestra.water_pump.get_state()
+        # if state == 0:
+        #     self.actuator_orchestra.water_pump.set_state("HIGH")
+        # else:
+        #     self.actuator_orchestra.water_pump.set_state("LOW")
+        # ###-----------------end-testing
+        
 
         logger.info(f"Cycle completed. Waiting for the next cycle in {c.BEAT} seconds...")
         time.sleep(c.BEAT)
