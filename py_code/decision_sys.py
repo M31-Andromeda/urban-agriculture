@@ -37,10 +37,13 @@ class DecisionOrquestra:
             low = np.percentile(data_history, c.THRESHOLDS["low_pct"])
             high = np.percentile(data_history, c.THRESHOLDS["high_pct"])
             return low, high
-        return (40.0, 90.0) if type_of_data == "soil_moisture_(%)" else (10.0, 35.0) if type_of_data == "env_temperature_(°C)" else (0.0, 100.0)
+        return ((40.0, 90.0) if type_of_data == "soil_moisture_(%)" 
+                else (c.THRESHOLDS["env_temperature_low"], c.THRESHOLDS["env_temperature_high"]) if type_of_data == "env_temperature_(°C)" 
+                else (c.THRESHOLDS["plants_temp_low"], c.THRESHOLDS["plants_temp_high"]) if type_of_data == "plants_temp_(°C)" 
+                else (0.0, 100.0))
 
 
-    def labeler(self, reading, moist_history, env_temp_history) -> str:
+    def labeler(self, reading, moist_history, env_temp_history, plants_temp_history) -> str:
         """Motor de reglas puro. Etiqueta el dataset sintético de entrenamiento,
         y en producción es uno de los dos votos que combina DecisionOrquestra.decide()."""
         moisture = reading.get("soil_moisture_(%)")
@@ -56,6 +59,7 @@ class DecisionOrquestra:
 
         moist_low, moist_high = self._get_bounds("soil_moisture_(%)", moist_history, min_readings=20)
         env_temp_low, env_temp_high = self._get_bounds("env_temperature_(°C)", env_temp_history, min_readings=20)
+        plants_temp_low, plants_temp_high = self._get_bounds("plants_temp_(°C)", plants_temp_history, min_readings=20)
 
         is_night = (light == 0)
 
@@ -73,12 +77,12 @@ class DecisionOrquestra:
         if env_temp > env_temp_high and env_hum < c.THRESHOLDS["env_humidity_stress_low"]:
             return "HYDRIC_STRESS_ALERT"
 
-        if env_temp > env_temp_high or plants_temp > c.THRESHOLDS["plants_temp_high"]:
+        if env_temp > env_temp_high or plants_temp > plants_temp_high:
             if power < (c.THRESHOLDS["fans_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
                 return "NOT_ABLE_TO_VENTILATE"
             return "VENTILATE"
 
-        if env_temp < env_temp_low or plants_temp < c.THRESHOLDS["plants_temp_low"]:
+        if env_temp < env_temp_low or plants_temp < plants_temp_low:
             return "LOW_TEMP_ALERT"
 
         if 0 < light < c.THRESHOLDS["light_low_lux"]:

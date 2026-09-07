@@ -26,7 +26,7 @@ rows_logged = int(WINDOW_DAYS * 24 * 60 * 60 / BEAT)
 THRESHOLDS = {
     "low_pct": 10,
     "high_pct": 90,
-    "env_temp_high": 33.0,
+    "env_temp_high": 40.0,
     "env_temp_low": 10.0,
     "plants_temp_high": 30.0,
     "plants_temp_low": 15.0,
@@ -35,7 +35,7 @@ THRESHOLDS = {
     "env_humidity_stress_low": 30.0,
     "env_humidity_fungal_high": 70.0,
     "plants_humidity_fungal_high": 80.0,
-    "pumps_max_consum":2.0, 
-    "fans_max_consum": 3.0,
-    "uno_q_consum":1.6
+    "pumps_max_consum":1.0, 
+    "fans_max_consum": 1.5,
+    "uno_q_consum":1
 }
