@@ -23,8 +23,9 @@ class DecisionOrquestra:
             reading = self.garden.sensors_readings.copy()
         moist_history = self.data_orchestra.read_column_history("soil_moisture_(%)")
         env_temp_history = self.data_orchestra.read_column_history("env_temperature_(°C)")
+        plants_temp_history = self.data_orchestra.read_column_history("plants_temp_(°C)")
 
-        rule_action = self.labeler(reading, moist_history, env_temp_history)
+        rule_action = self.labeler(reading, moist_history, env_temp_history, plants_temp_history)
 
         # TODO: cuando self.model exista, predecir con él aquí y combinar
         # con rule_action. Justo lo que toca decidir ahora.
@@ -38,7 +39,7 @@ class DecisionOrquestra:
             high = np.percentile(data_history, c.THRESHOLDS["high_pct"])
             return low, high
         return ((40.0, 90.0) if type_of_data == "soil_moisture_(%)" 
-                else (c.THRESHOLDS["env_temperature_low"], c.THRESHOLDS["env_temperature_high"]) if type_of_data == "env_temperature_(°C)" 
+                else (c.THRESHOLDS["env_temp_high"], c.THRESHOLDS["env_temp_low"]) if type_of_data == "env_temperature_(°C)" 
                 else (c.THRESHOLDS["plants_temp_low"], c.THRESHOLDS["plants_temp_high"]) if type_of_data == "plants_temp_(°C)" 
                 else (0.0, 100.0))
 

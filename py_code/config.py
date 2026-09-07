@@ -28,7 +28,7 @@ THRESHOLDS = {
     "high_pct": 90,
     "env_temp_high": 40.0,
     "env_temp_low": 10.0,
-    "plants_temp_high": 30.0,
+    "plants_temp_high": 36.0,
     "plants_temp_low": 15.0,
     "light_low_lux": 10000.0,
     "light_intense_lux": 50000.0,
