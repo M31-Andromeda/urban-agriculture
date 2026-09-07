@@ -30,37 +30,36 @@ class DecisionOrquestra:
 
         return rule_action
     
-    def _get_bounds(self, type_measure, min_readings=20):
+    def _get_bounds(self, data_history, min_readings=20):
         
-        data_history = self.data_orchestra.read_column_history(type_measure)
         if len(data_history) > min_readings:
             low = np.percentile(data_history, c.THRESHOLDS["low_pct"])
             high = np.percentile(data_history, c.THRESHOLDS["high_pct"])
             return low, high
-        return 40.0, 90.0 if type_measure == "soil_moisture_(%)" else (10.0, 35.0) if type_measure == "env_temperature_(°C)" else (0.0, 100.0)
+        return (40.0, 90.0) if data_history == "soil_moisture_(%)" else (10.0, 35.0) if data_history == "env_temperature_(°C)" else (0.0, 100.0)
 
 
-    def labeler(self):
+    def labeler(self, reading, moist_history, env_temp_history) -> str:
         """Motor de reglas puro. Etiqueta el dataset sintético de entrenamiento,
         y en producción es uno de los dos votos que combina DecisionOrquestra.decide()."""
-        moisture = self.garden.get("soil_moisture_(%)")
-        env_temp = self.garden.get("env_temperature_(°C)")
-        env_hum = self.garden.get("env_humidity_(%)")
-        plants_temp = self.garden.get("plants_temp_(°C)")
-        plants_hum = self.garden.get("plants_hum_(%)")
-        light = self.garden.get("light_intensity_(lux)")
-        power = self.garden.get("power_(W)")
+        moisture = reading.get("soil_moisture_(%)")
+        env_temp = reading.get("env_temperature_(°C)")
+        env_hum = reading.get("env_humidity_(%)")
+        plants_temp = reading.get("plants_temp_(°C)")
+        plants_hum = reading.get("plants_hum_(%)")
+        light = reading.get("light_intensity_(lux)")
+        power = reading.get("power_(W)")
 
         if any(v is None or (isinstance(v, float) and np.isnan(v)) for v in [moisture, env_temp, plants_temp, env_hum, light]):
             return "DATOS_INSUFICIENTES"
 
-        moist_low, moist_high = self._get_bounds("soil_moisture_(%)")
-        env_temp_low, env_temp_high = self._get_bounds("env_temperature_(°C)")
+        moist_low, moist_high = self._get_bounds(moist_history, min_readings=20)
+        env_temp_low, env_temp_high = self._get_bounds(env_temp_history, min_readings=20)
 
         is_night = (light == 0)
 
         if moisture < moist_low:
-            if (light > c.THRESHOLDS["light_intense_lux"] or env_temp_high > c.THRESHOLDS["env_temp_high"]) and power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
+            if (light > c.THRESHOLDS["light_intense_lux"] or env_temp > env_temp_high) and power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
                 return "NOT_ABLE_TO_WATER"
             return "WATER"
 
