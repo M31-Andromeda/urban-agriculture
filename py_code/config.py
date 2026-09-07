@@ -3,7 +3,6 @@ from pathlib import Path
 
 ###-----------------------CONFIG PARAMS-----------------------###
 
-BEAT = 20 # 30 minuts (pendiente de cambiar a 30 minutos para la versión definitiva)
 
 MOIST_SENSORS_CONFIG = [
     (0, 275, 682), # Sensor 1
@@ -20,4 +19,16 @@ URL_APPSCRIPT = "https://script.google.com/macros/s/AKfycbyFNCn9OWuZSEPUOSEIZhJt
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data" 
 
-rows_logged = 15
+BEAT = 30*60         
+WINDOW_DAYS = 3       
+rows_logged = int(WINDOW_DAYS * 24 * 60 * 60 / BEAT)
+
+
+THRESHOLDS = {
+    "soil_moisture_low_pct": 10,
+    "soil_moisture_high_pct": 90,
+    "env_temp_high": 33.0,
+    "env_temp_low": 10.0,
+    "plants_temp_high": 30.0,
+    "light_low_lux": 200.0,
+}

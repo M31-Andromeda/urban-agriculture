@@ -8,7 +8,7 @@ from actuators import ActuatorOrchestra
 from sensors import SensorOrchestra
 from data_manager import DataOrchestra
 
-logger = Logger("Garden")
+logger = Logger("Director")
 
 class GardenState:
     """Class to hold the state of the garden, including sensor readings and a lock for thread-safe access."""

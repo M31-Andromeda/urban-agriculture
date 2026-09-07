@@ -4,7 +4,8 @@ import os
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
-import requests 
+import requests
+import math
 
 
 import config as c
@@ -37,6 +38,21 @@ class DataOrchestra:
                 return max(0, row_count - 1)
         else:
             return 0
+        
+        
+    def read_colum_history(self, type_of_measure):
+            
+        lst_values = list()
+        if os.path.exists(self.filepath):
+            with open(self.filepath, mode='r', newline='') as file:
+                data_dict = csv.DictReader(file)
+                for row in data_dict:
+                    elem = float(row[type_of_measure])
+                    if not math.isnan(elem):
+                        lst_values.append(elem)                         
+        
+        return lst_values
+                        
 
     def save_online(self):
         """Saves the data online in google servers"""
