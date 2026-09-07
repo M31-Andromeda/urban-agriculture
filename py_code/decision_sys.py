@@ -21,22 +21,23 @@ class DecisionOrquestra:
         de las reglas."""
         with self.garden.lock:
             reading = self.garden.sensors_readings.copy()
-        data_history = self.data_orchestra.read_column_history("soil_moisture_(%)")
+        moist_history = self.data_orchestra.read_column_history("soil_moisture_(%)")
+        env_temp_history = self.data_orchestra.read_column_history("env_temperature_(°C)")
 
-        rule_action = self.labeler(reading, data_history)
+        rule_action = self.labeler(reading, moist_history, env_temp_history)
 
         # TODO: cuando self.model exista, predecir con él aquí y combinar
         # con rule_action. Justo lo que toca decidir ahora.
 
         return rule_action
     
-    def _get_bounds(self, data_history, min_readings=20):
+    def _get_bounds(self, type_of_data,  data_history, min_readings=20):
         
         if len(data_history) > min_readings:
             low = np.percentile(data_history, c.THRESHOLDS["low_pct"])
             high = np.percentile(data_history, c.THRESHOLDS["high_pct"])
             return low, high
-        return (40.0, 90.0) if data_history == "soil_moisture_(%)" else (10.0, 35.0) if data_history == "env_temperature_(°C)" else (0.0, 100.0)
+        return (40.0, 90.0) if type_of_data == "soil_moisture_(%)" else (10.0, 35.0) if type_of_data == "env_temperature_(°C)" else (0.0, 100.0)
 
 
     def labeler(self, reading, moist_history, env_temp_history) -> str:
@@ -50,17 +51,18 @@ class DecisionOrquestra:
         light = reading.get("light_intensity_(lux)")
         power = reading.get("power_(W)")
 
-        if any(v is None or (isinstance(v, float) and np.isnan(v)) for v in [moisture, env_temp, plants_temp, env_hum, light]):
+        if any(v is None or (isinstance(v, float) and np.isnan(v)) for v in [moisture, env_temp, env_hum, plants_temp, plants_hum, light, power]):
             return "DATOS_INSUFICIENTES"
 
-        moist_low, moist_high = self._get_bounds(moist_history, min_readings=20)
-        env_temp_low, env_temp_high = self._get_bounds(env_temp_history, min_readings=20)
+        moist_low, moist_high = self._get_bounds("soil_moisture_(%)", moist_history, min_readings=20)
+        env_temp_low, env_temp_high = self._get_bounds("env_temperature_(°C)", env_temp_history, min_readings=20)
 
         is_night = (light == 0)
 
         if moisture < moist_low:
-            if (light > c.THRESHOLDS["light_intense_lux"] or env_temp > env_temp_high) and power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
-                return "NOT_ABLE_TO_WATER"
+            if (light > c.THRESHOLDS["light_intense_lux"] or env_temp > env_temp_high):
+                if power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
+                    return "NOT_ABLE_TO_WATER"
             return "WATER"
 
         if moisture > moist_high:

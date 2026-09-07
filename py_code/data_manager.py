@@ -40,7 +40,7 @@ class DataOrchestra:
             return 0
         
         
-    def read_colum_history(self, type_of_measure):
+    def read_column_history(self, type_of_measure):
             
         lst_values = list()
         if os.path.exists(self.filepath):
