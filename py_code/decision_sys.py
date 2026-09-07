@@ -7,27 +7,76 @@ import config as c
 logger = Logger("DecisionSystem")
 
 
+
+def moisture_bounds(moisture_history, min_readings=20):
+    if len(moisture_history) > min_readings:
+        low = np.percentile(moisture_history, c.THRESHOLDS["soil_moisture_low_pct"])
+        high = np.percentile(moisture_history, c.THRESHOLDS["soil_moisture_high_pct"])
+        return low, high
+    return 40.0, 90.0
+
+
+def labeler(reading: dict, moisture_history: list) -> str:
+    """Motor de reglas puro. Etiqueta el dataset sintético de entrenamiento,
+    y en producción es uno de los dos votos que combina DecisionOrquestra.decide()."""
+    moisture = reading.get("soil_moisture_(%)")
+    env_temp = reading.get("env_temperature_(°C)")
+    env_hum = reading.get("env_humidity_(%)")
+    plants_temp = reading.get("plants_temp_(°C)")
+    plants_hum = reading.get("plants_hum_(%)")
+    light = reading.get("light_intensity_(lux)")
+    power = reading.get("power_(W)")
+
+    if any(v is None or (isinstance(v, float) and np.isnan(v)) for v in [moisture, env_temp, plants_temp, env_hum, light]):
+        return "DATOS_INSUFICIENTES"
+
+    moist_low, moist_high = moisture_bounds(moisture_history)
+    is_night = (light == 0)
+
+    if moisture < moist_low:
+        if light > c.THRESHOLDS["light_intense_lux"] or env_temp > c.THRESHOLDS["env_temp_high"] and power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
+            return "NOT_ABLE_TO_WATER"
+        return "WATER"
+
+    if moisture > moist_high:
+        if (env_hum > c.THRESHOLDS["env_humidity_fungal_high"] or plants_hum > c.THRESHOLDS["plants_humidity_fungal_high"]) or is_night:
+            return "FUNGI_ALERT_EXCESS_WATER"
+        return "EXCESS_WATER"
+
+    if env_temp > c.THRESHOLDS["env_temp_high"] and env_hum < c.THRESHOLDS["env_humidity_stress_low"]:
+        return "HYDRIC_STRESS_ALERT"
+
+    if env_temp > c.THRESHOLDS["env_temp_high"] or plants_temp > c.THRESHOLDS["plants_temp_high"]:
+        if power < (c.THRESHOLDS["fans_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
+            return "NOT_ABLE_TO_VENTILATE"
+        return "VENTILATE"
+
+    if env_temp < c.THRESHOLDS["env_temp_low"]:
+        return "LOW_TEMP_ALERT"
+
+    if 0 < light < c.THRESHOLDS["light_low_lux"]:
+        return "LOW_LIGHT"
+
+    return "OK"
+
+
 class DecisionOrquestra:
-    def __init__(self, garden, data_orchestra):
+    def __init__(self, garden, data_orchestra, model=None):
         self.garden = garden
         self.data_orchestra = data_orchestra
-        
-        
+        self.model = model  # se cargará con joblib.load(...) cuando lo entrenemos
 
+    def decide(self) -> str:
+        """La decisión final de verdad. Todavía no combina nada porque
+        aún no hay modelo entrenado — de momento solo devuelve el voto
+        de las reglas."""
+        with self.garden.lock:
+            reading = self.garden.sensors_readings.copy()
+        moisture_history = self.data_orchestra.read_column_history("soil_moisture_(%)")
 
-def decide(reading: dict, moisture_history: list) -> str:
-    """Función pura: misma entrada -> misma salida, siempre.
+        rule_action = labeler(reading, moisture_history)
 
-    reading: diccionario con la lectura actual (garden.sensors_readings)
-    moisture_history: lista de floats, histórico reciente de soil_moisture_(%)
-                       (viene de data_orchestra.read_column_history(...))
-    """
-    # TODO 1: calcula moist_low y moist_high con np.percentile() sobre
-    #         moisture_history — recuerda el caso de "aún no hay suficiente
-    #         histórico" (¿cuántas lecturas mínimo te fiarías?) y un
-    #         fallback razonable si no llega a ese mínimo.
+        # TODO: cuando self.model exista, predecir con él aquí y combinar
+        # con rule_action. Justo lo que toca decidir ahora.
 
-    # TODO 2: aplica las reglas en cascada, en este orden:
-    #         humedad -> temperatura (ventilar/alerta) -> luz -> si nada
-    #         de lo anterior salta, "OK"
-    pass
+        return rule_action

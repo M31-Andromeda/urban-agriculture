@@ -23,12 +23,18 @@ BEAT = 30*60
 WINDOW_DAYS = 3       
 rows_logged = int(WINDOW_DAYS * 24 * 60 * 60 / BEAT)
 
-
 THRESHOLDS = {
     "soil_moisture_low_pct": 10,
     "soil_moisture_high_pct": 90,
     "env_temp_high": 33.0,
     "env_temp_low": 10.0,
     "plants_temp_high": 30.0,
-    "light_low_lux": 200.0,
+    "light_low_lux": 10000.0,
+    "light_intense_lux": 50000.0,
+    "env_humidity_stress_low": 30.0,
+    "env_humidity_fungal_high": 70.0,
+    "plants_humidity_fungal_high": 80.0,
+    "pumps_max_consum":2.0, 
+    "fans_max_consum": 3.0,
+    "uno_q_consum":1.6
 }
