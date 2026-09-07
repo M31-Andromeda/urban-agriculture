@@ -39,7 +39,7 @@ class DecisionOrquestra:
             high = np.percentile(data_history, c.THRESHOLDS["high_pct"])
             return low, high
         return ((40.0, 90.0) if type_of_data == "soil_moisture_(%)" 
-                else (c.THRESHOLDS["env_temp_high"], c.THRESHOLDS["env_temp_low"]) if type_of_data == "env_temperature_(°C)" 
+                else (c.THRESHOLDS["env_temp_low"], c.THRESHOLDS["env_temp_high"]) if type_of_data == "env_temperature_(°C)" 
                 else (c.THRESHOLDS["plants_temp_low"], c.THRESHOLDS["plants_temp_high"]) if type_of_data == "plants_temp_(°C)" 
                 else (0.0, 100.0))
 
