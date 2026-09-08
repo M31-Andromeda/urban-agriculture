@@ -3,6 +3,10 @@ arduino_env/
 venv/
 env/
 
+#claude
+.claude/
+CLAUDE.md
+
 # Basura de Python y cachés
 __pycache__/
 *.pyc

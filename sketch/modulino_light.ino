@@ -18,7 +18,7 @@ String modulino_light_initialization() {
 }
 
 String read_modulino_light() {
-    // --- LEER INFRARROJO ---
+    // --- READ INFRARED ---
     Wire.beginTransmission(0x53);
     Wire.write(0x0A);
     Wire.endTransmission(false);
@@ -29,7 +29,7 @@ String read_modulino_light() {
         raw_ir &= 0x0FFFFF;
     }
 
-    // --- LEER LUZ AMBIENTAL ---
+    // --- READ AMBIENT LIGHT ---
     Wire.beginTransmission(0x53);
     Wire.write(0x0D);
     Wire.endTransmission(false);
