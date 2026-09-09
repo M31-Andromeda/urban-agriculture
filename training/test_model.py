@@ -4,7 +4,7 @@ import joblib
 import pandas as pd
 
 sys.path.insert(0, "../python")
-from decision_sys import DecisionOrquestra
+from generate_synthetic_data import SyntheticDataGenerator
 
 model = joblib.load("moisture_decision_model.joblib")
 
@@ -15,13 +15,12 @@ FEATURES = [
     "light_intensity_(lux)", "power_(W)",
 ]
 
-
 samples = [
     {  
-        "soil_moisture_(%)": 70, "soil_moisture_baseline": 80,
-        "env_temperature_(°C)": 32, "env_humidity_(%)": 55.0,
-        "plants_temp_(°C)": 30, "plants_hum_(%)": 70,
-        "light_intensity_(lux)": 40000.0, "power_(W)": 3.5,
+        "soil_moisture_(%)": 60, "soil_moisture_baseline": 80,
+        "env_temperature_(°C)": 38, "env_humidity_(%)": 40.0,
+        "plants_temp_(°C)": 37, "plants_hum_(%)": 50,
+        "light_intensity_(lux)": 40000.0, "power_(W)": 4,
     },
 ]
 
@@ -31,12 +30,10 @@ df["moisture_vs_baseline"] = df["soil_moisture_(%)"] - df["soil_moisture_baselin
 preds = model.predict(df[FEATURES])
 probs = model.predict_proba(df[FEATURES])
 
-d = DecisionOrquestra(garden=None, data_orchestra=None)
+d = SyntheticDataGenerator()
 
 for i, sample in enumerate(samples):
-    reading = {k: v for k, v in sample.items() if k != "soil_moisture_baseline"}
-    moist_history = [sample["soil_moisture_baseline"]] * 96  # baseline plana aproximada
-    rule_label = d.labeler(reading, moist_history)
+    rule_label = d.labeler(sample)
 
     print(f"\n--- muestra {i} ---")
     print("regla (labeler):", rule_label)
