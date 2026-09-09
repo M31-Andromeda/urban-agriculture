@@ -1,20 +1,18 @@
 import sys
-
 import joblib
 import pandas as pd
+
+from pathlib import Path
 
 sys.path.insert(0, "../python")
 from generate_synthetic_data import SyntheticDataGenerator
 
-model = joblib.load("moisture_decision_model.joblib")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python"))
+import config as c  # noqa: E402
 
-FEATURES = [
-    "soil_moisture_(%)", "soil_moisture_baseline", "moisture_vs_baseline",
-    "env_temperature_(°C)", "env_humidity_(%)",
-    "plants_temp_(°C)", "plants_hum_(%)",
-    "light_intensity_(lux)", "power_(W)",
-]
+model = joblib.load(c.decision_model_name)
 
+#EXAMPLE
 samples = [
     {  
         "soil_moisture_(%)": 60, "soil_moisture_baseline": 80,
@@ -27,8 +25,8 @@ samples = [
 df = pd.DataFrame(samples)
 df["moisture_vs_baseline"] = df["soil_moisture_(%)"] - df["soil_moisture_baseline"]
 
-preds = model.predict(df[FEATURES])
-probs = model.predict_proba(df[FEATURES])
+preds = model.predict(df[c.FEATURES])
+probs = model.predict_proba(df[c.FEATURES])
 
 d = SyntheticDataGenerator()
 

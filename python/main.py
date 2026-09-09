@@ -7,6 +7,7 @@ import config as c
 from actuators import ActuatorOrchestra
 from sensors import SensorOrchestra
 from data_manager import DataOrchestra
+from decision_sys import DecisionOrquestra
 
 logger = Logger("Director")
 
@@ -38,6 +39,7 @@ class Director:
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
         self.actuator_orchestra = ActuatorOrchestra()
+        self.decision_orchestra = DecisionOrquestra(self.garden, self.data_orchestra)
                
     @brick.loop
     def run(self):
@@ -47,6 +49,8 @@ class Director:
         self.sensor_orchestra.run()
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
+        output = self.decision_orchestra.decide()
+        logger.info(f"Decision system output: {output}")
         
         # ###-----------------testing_actuators
         # state = self.actuator_orchestra.water_pump.get_state()

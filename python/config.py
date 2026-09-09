@@ -25,12 +25,14 @@ URL_APPSCRIPT = os.environ.get("URL_APPSCRIPT")
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data" 
 
-BEAT = 30*60         
-WINDOW_DAYS = 2       
-rows_logged = int(WINDOW_DAYS * 24 * 60 * 60 / BEAT)
+decision_model_name = "decision_model.joblib"
+
+BEAT = 30         
+DAYS_LOGGED = 2       
+rows_logged = int(DAYS_LOGGED * 24 * 60 * 60 / BEAT)
 
 THRESHOLDS = {
-    "env_temp_high": 40.0,
+    "env_temp_high": 37.5,
     "env_temp_low": 10.0,
     "plants_temp_high": 36.0,
     "plants_temp_low": 15.0,
@@ -42,7 +44,15 @@ THRESHOLDS = {
     "fans_max_consum": 1.5,
     "uno_q_consum":1,
     "light_night_lux": 5.0,                 # below this, treat as night (real 0 isn't always bit-exact)
-    "moist_baseline_window": rows_logged,   # 2 days @ 30 min beat
-    "moist_baseline_margin_pct": 15.0,      # points above/below baseline = high/low
+    "moist_baseline_window": 24*60*60/BEAT, # 1 days @ 30 min beat
+    "moist_baseline_margin_pct": 10.0,      # points above/below baseline = high/low
     "moist_absolute_floor_pct": 40.0,       # backstop: always water below this, regardless of baseline
 }
+
+#model features used for training and prediction
+FEATURES = [
+    "soil_moisture_(%)", "soil_moisture_baseline", "moisture_vs_baseline",
+    "env_temperature_(°C)", "env_humidity_(%)",
+    "plants_temp_(°C)", "plants_hum_(%)",
+    "light_intensity_(lux)", "power_(W)",
+]

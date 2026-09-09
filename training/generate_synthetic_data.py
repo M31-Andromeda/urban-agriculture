@@ -6,7 +6,6 @@ from pathlib import Path
 from collections import Counter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python"))
-
 import config as c  # noqa: E402
 
 SEED = 15

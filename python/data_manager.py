@@ -40,29 +40,26 @@ class DataOrchestra:
             return 0
         
         
-    def read_column_history(self, type_of_measure):
+    def read_column_history(self, type_of_measure, rows_num):
         """Returns the historical values of a given column as floats, skipping NaNs.
         Rows that are missing the column or contain a value that cannot be parsed as
         a float (e.g. a truncated row from a crash mid-write) are skipped instead of
         raising, so a single corrupted row can't take down the decision loop."""
 
         lst_values = list()
-        skipped_rows = 0
+        rows_counter = 0
+        
         if os.path.exists(self.filepath):
             with open(self.filepath, mode='r', newline='') as file:
                 data_dict = csv.DictReader(file)
                 for row in data_dict:
-                    try:
+                    if rows_counter <= rows_num:
                         elem = float(row[type_of_measure])
-                    except (KeyError, TypeError, ValueError) as e:
-                        skipped_rows += 1
-                        logger.debug(f"read_column_history({type_of_measure}): skipping malformed row: {e}")
-                        continue
-                    if not math.isnan(elem):
-                        lst_values.append(elem)
-
-        if skipped_rows:
-            logger.warning(f"read_column_history({type_of_measure}): skipped {skipped_rows} malformed row(s).")
+                        if not math.isnan(elem):
+                            lst_values.append(elem)
+                            rows_counter += 1
+                    else:
+                        break
 
         return lst_values
                         
