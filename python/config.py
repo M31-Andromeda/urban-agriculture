@@ -27,7 +27,7 @@ data_directory = parent / "data"
 
 decision_model_name = "decision_model.joblib"
 
-BEAT = 30         
+BEAT = 20*60  # seconds between sensor readings (20 min)         
 DAYS_LOGGED = 2       
 rows_logged = int(DAYS_LOGGED * 24 * 60 * 60 / BEAT)
 

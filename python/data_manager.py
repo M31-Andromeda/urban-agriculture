@@ -71,7 +71,9 @@ class DataOrchestra:
             return False
         try:
             self.update_data()
-            response = requests.post(c.URL_APPSCRIPT, json = self.data, allow_redirects = True)
+            labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
+            self.to_send = self.data + labels
+            response = requests.post(c.URL_APPSCRIPT, json = self.to_send, allow_redirects = True)
             
             if response.status_code == 200:
                 logger.info("Data successfully sent to the server.")
