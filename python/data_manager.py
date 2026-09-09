@@ -24,11 +24,13 @@ class DataOrchestra:
         self.headers = ["Time"] + list(self.garden.keys) + ["label_1", "label_2", "label_3"]
         
         self.data = dict()
+        self.labels = dict()
         
     def update_data(self):
         """Updates the data dictionary with the latest sensor readings from the GardenState in a thread-safe manner."""
         with self.garden.lock:
             self.data = self.garden.sensors_readings.copy()
+            self.labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
             
     def _count_csv_rows(self):
         """Counts the number of rows in the local CSV file, excluding the header row."""
@@ -41,27 +43,30 @@ class DataOrchestra:
         
         
     def read_column_history(self, type_of_measure, rows_num):
-        """Returns the historical values of a given column as floats, skipping NaNs.
-        Rows that are missing the column or contain a value that cannot be parsed as
-        a float (e.g. a truncated row from a crash mid-write) are skipped instead of
-        raising, so a single corrupted row can't take down the decision loop."""
+        """Returns the `rows_num` most recent historical values of a given column as
+        floats, skipping NaNs. Rows that are missing the column or contain a value
+        that cannot be parsed as a float (e.g. a truncated row from a crash
+        mid-write) are skipped instead of raising, so a single corrupted row can't
+        take down the decision loop."""
 
         lst_values = list()
-        rows_counter = 0
-        
-        if os.path.exists(self.filepath):
-            with open(self.filepath, mode='r', newline='') as file:
-                data_dict = csv.DictReader(file)
-                for row in data_dict:
-                    if rows_counter <= rows_num:
-                        elem = float(row[type_of_measure])
-                        if not math.isnan(elem):
-                            lst_values.append(elem)
-                            rows_counter += 1
-                    else:
-                        break
+        rows_num = int(rows_num)
 
-        return lst_values
+        if rows_num <= 0 or not os.path.exists(self.filepath):
+            return lst_values
+
+        with open(self.filepath, mode='r', newline='') as file:
+            for row in csv.DictReader(file):
+                try:
+                    elem = float(row[type_of_measure])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                if not math.isnan(elem):
+                    lst_values.append(elem)
+
+        # CSV rows are chronological (oldest first, newest last), so the tail
+        # of the list is the most recent history.
+        return lst_values[-rows_num:]
                         
 
     def save_online(self):
@@ -71,8 +76,7 @@ class DataOrchestra:
             return False
         try:
             self.update_data()
-            labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
-            self.to_send = self.data + labels
+            self.to_send = self.data | self.labels
             response = requests.post(c.URL_APPSCRIPT, json = self.to_send, allow_redirects = True)
             
             if response.status_code == 200:
@@ -90,8 +94,7 @@ class DataOrchestra:
         try:
             self.update_data()
             now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
-            labels = [f"{label}: {p}" for label, p in self.garden.predictions.items()]
-            new_row = [now] + [self.data[key] for key in self.garden.keys] + labels
+            new_row = [now] + [self.data[key] for key in self.garden.keys] + list(self.labels.values())
             file_exists = os.path.exists(self.filepath)
             
             if file_exists and self.rows_num >= self.max_rows:

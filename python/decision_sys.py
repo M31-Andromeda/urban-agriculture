@@ -1,5 +1,4 @@
-import math
-import sys
+
 import pandas as pd
 import joblib
 from pathlib import Path
@@ -21,12 +20,13 @@ class DecisionOrquestra:
         self.model = joblib.load(self.model_path)
 
     def decide(self):
-        """Rule engine's vote for now; will combine with self.model once trained."""
         with self.garden.lock:
             reading = self.garden.sensors_readings.copy()
         moist_history = self.data_orchestra.read_column_history("soil_moisture_(%)", c.THRESHOLDS["moist_baseline_window"])
         
-        moisture_baseline = sum(moist_history) / len(moist_history) if moist_history else 60 # arbitrary default if no history yet (e.g. first run)
+        # No history yet (e.g. first run): fall back to the current reading itself,
+        # so moisture_vs_baseline is 0 instead of comparing against an arbitrary value.
+        moisture_baseline = sum(moist_history) / len(moist_history) if moist_history else reading["soil_moisture_(%)"]
         
         predictor = [
             {  
