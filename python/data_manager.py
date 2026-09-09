@@ -21,7 +21,7 @@ class DataOrchestra:
         self.filepath = c.data_directory / self.file_name
         self.max_rows = max_rows
         self.rows_num = self._count_csv_rows()
-        self.headers = ["Time"] + list(self.garden.keys)
+        self.headers = ["Time"] + list(self.garden.keys) + ["label_1", "label_2", "label_3"]
         
         self.data = dict()
         
@@ -88,7 +88,8 @@ class DataOrchestra:
         try:
             self.update_data()
             now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
-            new_row = [now] + [self.data[key] for key in self.garden.keys]
+            labels = [f"{label}: {p}" for label, p in self.garden.predictions.items()]
+            new_row = [now] + [self.data[key] for key in self.garden.keys] + labels
             file_exists = os.path.exists(self.filepath)
             
             if file_exists and self.rows_num >= self.max_rows:

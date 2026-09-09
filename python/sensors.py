@@ -97,7 +97,7 @@ class MoistOrchest:
             
     def _parse(self):
         valid_data = [d for d in self.raw_data if not math.isnan(d)]
-        logger.info(self.raw_data)
+        #logger.info(self.raw_data)
         if not valid_data:
             self.clean_data = {"soil_moisture_(%)": float('nan')}
         else:

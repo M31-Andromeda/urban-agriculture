@@ -40,11 +40,10 @@ class DecisionOrquestra:
         df = pd.DataFrame(predictor)
         df["moisture_vs_baseline"] = df["soil_moisture_(%)"] - df["soil_moisture_baseline"]
 
-        preds = self.model.predict(df[c.FEATURES])
         probs = self.model.predict_proba(df[c.FEATURES])
         
         raw_top = sorted(zip(self.model.classes_, probs[0]), key=lambda x: -x[1])[:3]
-        top = [(f"{label}, {p:.2f}") for label, p in raw_top]
-        return top
+        self.garden.predictions = {f"{label}":f"{p:.2f}" for label, p in raw_top}
+        
 
     

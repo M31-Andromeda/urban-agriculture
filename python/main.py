@@ -22,6 +22,8 @@ class GardenState:
                      'ir_(raw)', 'current_(mA)', 'voltage_(V)', 'power_(W)')
         
         self.sensors_readings = {key : 0.0 for key in self.keys}
+        
+        self.predictions = dict()
     
 @brick        
 class Director:
@@ -47,10 +49,11 @@ class Director:
         logger.info("Starting the main loop of the garden monitoring system...")
         
         self.sensor_orchestra.run()
+        self.decision_orchestra.decide()
+        
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
-        output = self.decision_orchestra.decide()
-        logger.info(f"Decision system output: {output}")
+        
         
         # ###-----------------testing_actuators
         # state = self.actuator_orchestra.water_pump.get_state()
