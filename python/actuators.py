@@ -37,17 +37,11 @@ class Actuator:
         
         
 class ActuatorOrchestra:
-    """Class to manage multiple actuators in the garden monitoring system."""
-    
     def __init__(self):
-        """Initializes the ActuatorOrchestra with a list of actuators."""
-        
         self.water_pump = Actuator("water_pump", c.WATER_PUMP_PIN)
         self.fans = Actuator("fans", c.FANS_PIN)
-        
+
     def stop_all(self):
-        """Sets all actuators to their safe state (LOW) in case of an emergency."""
-        
         logger.info("Emergency stop activated. Setting all actuators to LOW.")
         self.water_pump.set_state("LOW")
         self.fans.set_state("LOW")

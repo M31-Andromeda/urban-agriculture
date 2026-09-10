@@ -13,9 +13,7 @@ import config as c
 logger = Logger("DataManager")
 
 class DataOrchestra:
-    """Class to manage the data saving operations, both locally and online, for the garden monitoring system."""
     def __init__(self, garden, max_rows=c.rows_logged):
-        """Initializes the DataOrchestra with a reference to the GardenState, the file path for local data storage, and the maximum number of rows to keep in the local CSV file."""
         self.garden = garden
         self.file_name = "sensors_data.csv"
         self.filepath = c.data_directory / self.file_name
@@ -27,13 +25,11 @@ class DataOrchestra:
         self.labels = dict()
         
     def update_data(self):
-        """Updates the data dictionary with the latest sensor readings from the GardenState in a thread-safe manner."""
         with self.garden.lock:
             self.data = self.garden.sensors_readings.copy()
             self.labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
             
     def _count_csv_rows(self):
-        """Counts the number of rows in the local CSV file, excluding the header row."""
         if os.path.exists(self.filepath):
             with open(self.filepath, mode='r', newline='') as file:
                 row_count = sum(1 for row in file)
@@ -70,7 +66,6 @@ class DataOrchestra:
                         
 
     def save_online(self):
-        """Saves the data online in google servers"""
         if not c.URL_APPSCRIPT:
             logger.warning("URL_APPSCRIPT is not set (missing environment variable); skipping online save.")
             return False
@@ -90,7 +85,6 @@ class DataOrchestra:
             logger.error(f"Error in the connection: {e}")
 
     def save_local(self):
-        """Saves the data locally in a CSV file, maintaining a maximum number of rows as specified by max_rows."""
         try:
             self.update_data()
             now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")

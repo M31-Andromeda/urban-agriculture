@@ -12,10 +12,7 @@ from decision_sys import DecisionOrquestra
 logger = Logger("Director")
 
 class GardenState:
-    """Class to hold the state of the garden, including sensor readings and a lock for thread-safe access."""
     def __init__(self):
-        """Initializes the GardenState with a lock, sensor keys, and a dictionary to hold sensor readings."""
-
         self.lock = threading.Lock()
         self.keys = ('env_temperature_(°C)', 'env_humidity_(%)', 'pressure_(hPa)', 
                      'soil_moisture_(%)', 'plants_temp_(°C)', 'plants_hum_(%)', 'light_intensity_(lux)', 
@@ -25,19 +22,13 @@ class GardenState:
         
         self.predictions = dict()
     
-@brick        
+@brick
 class Director:
-    """Director class to manage the overall operation of the garden monitoring system, including sensor reading and data saving."""
-    
     def __init__(self, garden):
-        """Initializes the Director with a reference to the GardenState."""
         self.garden = garden
-        
+
     def start(self):
-        """instantiation of modules that compound the garden monitoring system"""
-        
         logger.info("Initializing the garden monitoring system...")
-        #----------instantiations----------#
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
         self.actuator_orchestra = ActuatorOrchestra()
@@ -45,24 +36,15 @@ class Director:
                
     @brick.loop
     def run(self):
-        """Main loop that continuously executes all the modules, and waits for the next cycle based on the configured beat interval."""        
         logger.info("Starting the main loop of the garden monitoring system...")
-        
+
         self.sensor_orchestra.run()
         self.decision_orchestra.decide()
-        
+
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
-        
-        
-        # ###-----------------testing_actuators
-        # state = self.actuator_orchestra.water_pump.get_state()
-        # if state == 0:
-        #     self.actuator_orchestra.water_pump.set_state("HIGH")
-        # else:
-        #     self.actuator_orchestra.water_pump.set_state("LOW")
-        # ###-----------------end-testing
-        
+
+        # TODO: drive actuator_orchestra from self.garden.predictions — not wired up yet.
 
         logger.info(f"Cycle completed. Waiting for the next cycle in {c.BEAT} seconds...")
         time.sleep(c.BEAT)
