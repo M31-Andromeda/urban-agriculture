@@ -18,7 +18,7 @@ samples = [
         "soil_moisture_(%)": 79, "soil_moisture_baseline": 80,
         "env_temperature_(°C)": 25, "env_humidity_(%)": 80,
         "plants_temp_(°C)": 27, "plants_hum_(%)": 50,
-        "light_intensity_(lux)": 40000.0, "power_(W)": 4,
+        "light_intensity_(lux)": 0.0, "power_(W)": 4,
     },
 ]
 
