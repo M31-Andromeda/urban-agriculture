@@ -1,9 +1,0 @@
-[Unit]
-Description=Take a dry-leaf dataset photo every 5 minutes (capture.py skips outside active hours)
-
-[Timer]
-OnCalendar=*:0/5
-Persistent=true
-
-[Install]
-WantedBy=timers.target

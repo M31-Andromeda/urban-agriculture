@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-"""Single-shot capture for building the dry-leaf detection dataset.
+"""Continuous capture loop for building the dry-leaf detection dataset.
 
-Standalone on purpose: it does not import `arduino.app_utils` and does not touch
-the Bridge, so it can run on its own timer (via systemd, see dataset/systemd/)
-independently of whether the main garden App is running.
+Standalone: no arduino.app_utils/Bridge import, so it runs independently of the
+main garden App. A systemd service (vision_model/systemd/) just keeps it alive.
 
 Usage:
-    python3 capture.py            # takes one photo, unless it's outside the active window
-    python3 capture.py --force    # ignore the active-hours window (manual test shot)
+    python3 capture.py          # loop forever: one photo every CAPTURE_INTERVAL seconds
+    python3 capture.py --once   # single manual test shot, ignores the active-hours window
 """
 
-import argparse
 import sys
 import time
 from datetime import datetime
@@ -18,64 +16,59 @@ from pathlib import Path
 
 import cv2
 
-CAMERA_INDEX = 2  # /dev/video2 (Brio 105) -- verified working; video3 is a metadata-only node
-RESOLUTION = (1280, 720)
+CAMERA_INDEX = 0  # /dev/video0 (Brio 105); re-check with `v4l2-ctl --list-devices` if this stops working
+RESOLUTION = (1920, 1080)  # max MJPG resolution the Brio 105 reports
+JPEG_QUALITY = 95
 OUTPUT_DIR = Path(__file__).resolve().parent / "images"
+CAPTURE_INTERVAL = 5 * 60  # seconds between shots
 
-# Skip captures outside this local-time window: a plain USB webcam has no night
-# vision, so shots taken while it's dark are just black frames that waste
-# storage and labeling effort. Adjust to match when the garden actually has light.
-ACTIVE_HOUR_START = 7
-ACTIVE_HOUR_END = 22
+# A plain USB webcam has no night vision, so skip shots outside this local-time
+# window -- they'd just be black frames wasting storage/labeling effort.
+ACTIVE_HOUR_START = 6
+ACTIVE_HOUR_END = 21
 
 
-def capture_frame():
+def take_photo():
+    """Grab one frame and save it to OUTPUT_DIR. Returns True on success."""
     cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, RESOLUTION[0])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, RESOLUTION[1])
 
-    if not cap.isOpened():
-        raise RuntimeError(f"Could not open camera at index {CAMERA_INDEX}")
-
-    # Discard the first couple of frames: USB webcams often return a stale or
-    # under-exposed frame immediately after opening, before auto-exposure settles.
+    # Discard the first frames: right after opening, before auto-exposure settles,
+    # USB webcams often return a stale or under-exposed frame.
     for _ in range(5):
         cap.read()
         time.sleep(0.05)
-
     ok, frame = cap.read()
     cap.release()
 
     if not ok or frame is None:
-        raise RuntimeError("Camera opened but did not return a frame")
+        print("ERROR: camera did not return a frame", file=sys.stderr)
+        return False
 
-    return frame
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    now = datetime.now()
+    filename = OUTPUT_DIR / f"{now.strftime('%Y%m%d_%H%M%S')}.jpg"
+    cv2.imwrite(str(filename), frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+    print(f"[{now}] Saved {filename.name}")
+    return True
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--force", action="store_true", help="Ignore the active-hours window")
-    args = parser.parse_args()
+    if "--once" in sys.argv:
+        take_photo()
+        return
 
-    now = datetime.now()
-    if not args.force and not (ACTIVE_HOUR_START <= now.hour < ACTIVE_HOUR_END):
-        print(f"[{now}] Outside active window ({ACTIVE_HOUR_START}-{ACTIVE_HOUR_END}h); skipping.")
-        return 0
-
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    filename = OUTPUT_DIR / f"{now.strftime('%Y%m%d_%H%M%S')}.jpg"
-
-    try:
-        frame = capture_frame()
-    except RuntimeError as e:
-        print(f"[{now}] ERROR: {e}", file=sys.stderr)
-        return 1
-
-    cv2.imwrite(str(filename), frame, [cv2.IMWRITE_JPEG_QUALITY, 90])
-    print(f"[{now}] Saved {filename.name}")
-    return 0
+    print(f"Capture loop started: one photo every {CAPTURE_INTERVAL}s, {ACTIVE_HOUR_START}-{ACTIVE_HOUR_END}h.")
+    while True:
+        now = datetime.now()
+        if ACTIVE_HOUR_START <= now.hour < ACTIVE_HOUR_END:
+            take_photo()
+        else:
+            print(f"[{now}] Outside active window; skipping.")
+        time.sleep(CAPTURE_INTERVAL)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

@@ -1,7 +1,6 @@
 
 import pandas as pd
 import joblib
-from pathlib import Path
 
 from arduino.app_utils import *
 
@@ -16,7 +15,7 @@ class DecisionOrquestra:
     def __init__(self, garden, data_orchestra, model_name=c.decision_model_name):
         self.garden = garden
         self.data_orchestra = data_orchestra
-        self.model_path = Path(__file__).resolve().parent.parent / "training" / model_name
+        self.model_path = c.decision_model_training_directory / model_name
         self.model = joblib.load(self.model_path)
 
     def decide(self):

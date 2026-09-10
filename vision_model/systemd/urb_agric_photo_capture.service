@@ -1,0 +1,15 @@
+[Unit]
+Description=Urban Agriculture - continuous garden photo capture for ML dataset building (interval/active-hours set in capture.py)
+After=network.target
+
+[Service]
+Type=simple
+User=arduino
+WorkingDirectory=/home/arduino/Personal/projects/urban_agriculture/vision_model
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/arduino/arduino_env/bin/python3 /home/arduino/Personal/projects/urban_agriculture/vision_model/capture.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

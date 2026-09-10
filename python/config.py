@@ -23,7 +23,8 @@ URL_APPSCRIPT = os.environ.get("URL_APPSCRIPT")
 
 
 parent = Path(__file__).resolve().parent.parent
-data_directory = parent / "data" 
+data_directory = parent / "data"
+decision_model_training_directory = parent / "decision_model_training"
 
 decision_model_name = "decision_model.joblib"
 

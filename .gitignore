@@ -16,3 +16,10 @@ __pycache__/
 *.elf
 *.bin
 *.hex
+
+# Fotos capturadas por vision_model/capture.py (dataset local, no versionado)
+vision_model/images/
+
+# Copia local de referencia del unit file de systemd instalado en /etc/systemd/system/ —
+# lleva URL_APPSCRIPT (secreto) en texto plano en Environment=, nunca debe commitearse.
+/systemd/urb_agric_system.service
