@@ -111,6 +111,9 @@ class SyntheticDataGenerator:
         if 0 < light < c.THRESHOLDS["light_low_lux"]:
             return "LOW_LIGHT"
 
+        if is_night:
+            return "NIGHT_OK"
+        
         return "OK"
 
     def build_row(self):

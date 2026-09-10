@@ -1,0 +1,7 @@
+[Unit]
+Description=Urban Agriculture - single photo capture for the dry-leaf detection dataset
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/arduino/Personal/projects/urban_agriculture/dataset
+ExecStart=/home/arduino/arduino_env/bin/python3 /home/arduino/Personal/projects/urban_agriculture/dataset/capture.py

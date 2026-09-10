@@ -40,4 +40,4 @@ print("\nFeature importances:")
 print(importances)
 
 joblib.dump(model, c.decision_model_name)
-print(f"\nGuardado en training/{c.decision_model_name}")
+print(f"\nGuardado en decision_model_training/{c.decision_model_name}")
