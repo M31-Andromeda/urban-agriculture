@@ -2,9 +2,6 @@
 import os
 from pathlib import Path
 
-###-----------------------CONFIG PARAMS-----------------------###
-
-
 MOIST_SENSORS_CONFIG = [
     (0, 275, 682), # Sensor 1
     (1, 290, 685), # Sensor 2
@@ -13,24 +10,25 @@ MOIST_SENSORS_CONFIG = [
 WATER_PUMP_PIN = 6
 FANS_PIN = 5
 
-# Apps Script endpoint that syncs sensor data to the Google Sheet. Treated as a secret
-# (it grants write access to the sheet), so it is read from an environment variable
-# instead of being hardcoded:
-#   - Manual workflow: export URL_APPSCRIPT before running `python3 main.py`
-#     (e.g. add `export URL_APPSCRIPT="..."` to your venv activation script).
-#   - App Lab: set it as an environment variable in the App's Brick Configuration.
 URL_APPSCRIPT = os.environ.get("URL_APPSCRIPT")
+TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data"
 decision_model_training_directory = parent / "decision_model_training"
 
+sensors_csv_path = data_directory / "sensors_data.csv"
+telegram_subscribers_path = data_directory / "telegram_subscribers.json"
+
 decision_model_name = "decision_model.joblib"
 
-BEAT = 20*60  # seconds between sensor readings (20 min)         
-DAYS_LOGGED = 2       
+BEAT = 20*60
+DAYS_LOGGED = 2
 rows_logged = int(DAYS_LOGGED * 24 * 60 * 60 / BEAT)
+
+WATERING_DURATION = 30
+VENTILATION_DURATION = 60
 
 THRESHOLDS = {
     "env_temp_high": 37.5,
@@ -44,16 +42,23 @@ THRESHOLDS = {
     "pumps_max_consum":1.0,
     "fans_max_consum": 1.5,
     "uno_q_consum":1,
-    "light_night_lux": 5.0,                 # below this, treat as night (real 0 isn't always bit-exact)
-    "moist_baseline_window": 24*60*60/BEAT, # 1 days @ 30 min beat
-    "moist_baseline_margin_pct": 10.0,      # points above/below baseline = high/low
-    "moist_absolute_floor_pct": 40.0,       # backstop: always water below this, regardless of baseline
+    "light_night_lux": 5.0,
+    "moist_baseline_window": 24*60*60/BEAT,
+    "moist_baseline_margin_pct": 10.0,
+    "moist_absolute_floor_pct": 40.0,
 }
 
-#model features used for training and prediction
 FEATURES = [
     "soil_moisture_(%)", "soil_moisture_baseline", "moisture_vs_baseline",
     "env_temperature_(°C)", "env_humidity_(%)",
     "plants_temp_(°C)", "plants_hum_(%)",
     "light_intensity_(lux)", "power_(W)",
 ]
+
+CAMERA_SETTINGS = {
+    "camera_index" : 0,
+    "resolution" : (1920, 1080),
+    "jpeg_quality" : 95
+}
+
+IMAGE_MODEL_PATH = "  "

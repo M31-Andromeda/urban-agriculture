@@ -11,8 +11,6 @@ df = pd.read_csv("synthetic_dataset.csv")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python"))
 import config as c  # noqa: E402
 
-# INSUFFICIENT_DATA ya se resuelve con una comprobación simple en labeler() antes
-# de llegar aquí -- no aporta nada al modelo entrenar sobre filas con NaN.
 df = df[df["label"] != "INSUFFICIENT_DATA"]
 df["moisture_vs_baseline"] = df["soil_moisture_(%)"] - df["soil_moisture_baseline"]
 
@@ -26,7 +24,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 model = RandomForestClassifier(
     n_estimators=200,
-    class_weight="balanced",  # compensa que HYDRIC_STRESS_ALERT sea ~1% frente a OK ~25%
+    class_weight="balanced",
     random_state=42,
 )
 model.fit(X_train, y_train)

@@ -16,7 +16,7 @@ class DataOrchestra:
     def __init__(self, garden, max_rows=c.rows_logged):
         self.garden = garden
         self.file_name = "sensors_data.csv"
-        self.filepath = c.data_directory / self.file_name
+        self.filepath = c.sensors_csv_path
         self.max_rows = max_rows
         self.rows_num = self._count_csv_rows()
         self.headers = ["Time"] + list(self.garden.keys) + ["label_1", "label_2", "label_3"]
@@ -39,12 +39,6 @@ class DataOrchestra:
         
         
     def read_column_history(self, type_of_measure, rows_num):
-        """Returns the `rows_num` most recent historical values of a given column as
-        floats, skipping NaNs. Rows that are missing the column or contain a value
-        that cannot be parsed as a float (e.g. a truncated row from a crash
-        mid-write) are skipped instead of raising, so a single corrupted row can't
-        take down the decision loop."""
-
         lst_values = list()
         rows_num = int(rows_num)
 
@@ -60,8 +54,6 @@ class DataOrchestra:
                 if not math.isnan(elem):
                     lst_values.append(elem)
 
-        # CSV rows are chronological (oldest first, newest last), so the tail
-        # of the list is the most recent history.
         return lst_values[-rows_num:]
                         
 

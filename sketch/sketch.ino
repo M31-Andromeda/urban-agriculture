@@ -1,20 +1,11 @@
 
-#include <Wire.h>                   // Std Arduino lib - I2C COM              
-#include "Arduino_RouterBridge.h"   // Arduino UNO Q - RPC Bridge
-#include <SPI.h>                    // Std Arduino lib - SPI COM
-
-
-
-
+#include <Wire.h>
+#include "Arduino_RouterBridge.h"
+#include <SPI.h>
 void setup() {
+    Bridge.begin();
+    Wire.begin();
 
-    Bridge.begin(); //RPC Com
-    Wire.begin();   //I2C COM
-
-
-    
-
-    //--------------------------PROVIDES--------------------------
     Bridge.provide("get_sht30", read_sht30);
 
     Bridge.provide("get_moist_v1_2", read_capacitive_moisture_sensor_v1_2);
@@ -30,8 +21,6 @@ void setup() {
 
     Bridge.provide("set_actuator", set_actuator);
 
-
-    //--------------------------INITIALIZATORS--------------------------
     bme680_initialization();
     modulino_light_initialization();
     ina219_initialization();

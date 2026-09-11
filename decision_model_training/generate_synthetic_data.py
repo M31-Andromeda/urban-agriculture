@@ -20,8 +20,6 @@ class SyntheticDataGenerator:
         self.output_path = output_path
 
     def sample_light(self):
-        # Bucket proportions and the 157285.8 ceiling come from the real board's
-        # historical_sensor_data.csv: sunny hours peg at that exact value.
         r = self.rng.random()
         if r < 0.19:
             return self.rng.uniform(1, 9999)

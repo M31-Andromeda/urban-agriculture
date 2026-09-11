@@ -4,12 +4,11 @@ Photos for training a garden-monitoring vision model that will feed a score into
 This directory is standalone — `capture.py` doesn't import `arduino.app_utils`, so it runs independently
 of the main garden App.
 
-> **The exact ML approach is not decided yet.** This started as a plan to train a custom Edge Impulse
-> object-detection model for a single `hoja_seca` (dry leaf) class; it's currently being reconsidered in
-> favor of some form of anomaly detection instead, but nothing beyond "capture photos every 5 minutes" is
-> settled. Treat everything below the `## Capturing` section as notes/options, not a spec — re-check with
-> whoever owns this feature before assuming any of it is the actual plan, and update this file once a
-> direction is picked instead of leaving stale instructions here.
+> **Decided (2026-09-11): anomaly detection, trained in Edge Impulse Studio.** This started as a plan to
+> train a custom Edge Impulse object-detection model for a single `hoja_seca` (dry leaf) class, but that's
+> been dropped in favor of anomaly detection over the whole frame — faster to get to a working model,
+> since it doesn't need staged defect examples or bounding-box labeling (see the "Decided" section below).
+> Training itself happens in the Edge Impulse Studio web UI, not from this repo.
 
 ## Capturing
 
@@ -55,30 +54,33 @@ and a model trained on only one lighting condition tends to only work in that co
 while testing the capture pipeline itself (these are about image quality, not about labeling, so they hold
 no matter what gets trained):
 
-1. **A test shot came out overexposed in direct sun** (clipped white highlights, hard shadows) — try to get
-   at least some shots with the camera not staring straight into direct sun, or with the plant partially
-   shaded, so leaf color survives.
+1. **A test shot came out overexposed in direct sun** (clipped white highlights, hard shadows) — traced to
+   the Brio 105's `backlight_compensation` control (on by default): it pushes exposure up whenever a bright
+   patch is in frame (here, the light-colored board behind the plants), clipping the plant/leaf area around
+   it regardless of actual ambient light level. `capture.py` now forces `backlight_compensation=0` via
+   `v4l2-ctl` before every shot. Verified to help under overcast light; not yet confirmed under harsh direct
+   midday sun — check a real midday shot before calling this fully solved.
 2. **A test shot near dusk (~22:00) came out too dark to tell leaf color apart**, with visible sensor
    noise — this is why `ACTIVE_HOUR_END` in `capture.py` was tightened; re-check it still matches actual
    usable daylight as the seasons change.
 3. Nudge the camera angle or rotate the pot every so often. A model trained on one fixed framing tends to
    only work in that exact framing.
 
-## Open question: what to actually train, and how
+## Decided: anomaly detection over the whole frame
 
-Not decided yet — options seen discussed so far, listed without commitment to either:
+Trained in Edge Impulse Studio (web UI), not scripted from this repo. Wants mostly "normal" garden photos
+and little or no labeling — it learns what normal looks like and flags deviation — so **no staged defect
+examples needed** (that was only relevant to the object-detection plan, now dropped). Capture keeps running
+as-is: one photo every 5 min, all active hours, for lighting/framing variety.
 
-- **Object detection for a specific defect class** (the original `hoja_seca` plan): needs bounding-box
-  labels around the defect in every photo that has one, and deliberately stages "positive" examples (e.g.
-  placing real dry/wilted leaves in frame for part of a session) so there's something to label at all.
-  Edge Impulse's Object Detection block + FOMO MobileNetV2, deployed via the `object_detection` Brick, was
-  the tool chain considered for this.
-- **Anomaly detection over the whole frame**: typically wants mostly "normal" garden photos and few or no
-  labels at all (it learns what normal looks like and flags deviation), so the staged-defect-examples
-  advice above would **not** apply — check the `arduino:visual_anomaly_detection` Brick's own README on
-  the board (`arduino-app-cli brick details arduino:visual_anomaly_detection`) for what data format it
-  actually expects before assuming anything here.
+Inference side is expected to run via the `arduino:visual_anomaly_detection` Brick once this is imported
+into App Lab — check its README on the board (`arduino-app-cli brick details
+arduino:visual_anomaly_detection`) for the exact input/output format before wiring it up.
 
-Whichever gets picked changes what "a good capture session" means (staged defects vs. just normal
-operation) and the whole labeling workflow — rewrite this section for real once that's settled, rather than
-patching it further.
+**Output**: a continuous score in **0–1** measuring anomaly level (confirm the direction — i.e. whether 1
+means "normal" or "anomalous" — against the actual trained model before writing any threshold logic against
+it). This score is meant to become a new feature in the decision model (see "Extending the decision model
+with a new feature" in the top-level `CLAUDE.md`): a new `garden.sensors_readings` key, a `config.THRESHOLDS`
+entry, taught to `SyntheticDataGenerator`/`labeler()` in `decision_model_training/generate_synthetic_data.py`,
+added to the `predictor` dict in `python/decision_sys.py`, then `decision_model.joblib` regenerated and
+retrained.

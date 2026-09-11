@@ -7,7 +7,8 @@ import config as c
 from actuators import ActuatorOrchestra
 from sensors import SensorOrchestra
 from data_manager import DataOrchestra
-from decision_sys import DecisionOrquestra
+from decision_sys import DecisionOrchestra
+from telegram import TelegramDirector
 
 logger = Logger("Director")
 
@@ -24,31 +25,32 @@ class GardenState:
     
 @brick
 class Director:
-    def __init__(self, garden):
+    def __init__(self, garden, telegram_director):
         self.garden = garden
+        self.telegram_director = telegram_director
 
     def start(self):
         logger.info("Initializing the garden monitoring system...")
         self.sensor_orchestra = SensorOrchestra(self.garden)
         self.data_orchestra = DataOrchestra(self.garden)
-        self.actuator_orchestra = ActuatorOrchestra()
-        self.decision_orchestra = DecisionOrquestra(self.garden, self.data_orchestra)
-               
+        self.decision_orchestra = DecisionOrchestra(self.garden, self.data_orchestra)
+        self.actuator_orchestra = ActuatorOrchestra(self.telegram_director)
+
     @brick.loop
     def run(self):
         logger.info("Starting the main loop of the garden monitoring system...")
 
         self.sensor_orchestra.run()
-        self.decision_orchestra.decide()
-
+        self.decision_orchestra.predict()
         self.data_orchestra.save_local()
         self.data_orchestra.save_online()
-
-        # TODO: drive actuator_orchestra from self.garden.predictions — not wired up yet.
+        self.actuator_orchestra.run(self.garden.predictions)
 
         logger.info(f"Cycle completed. Waiting for the next cycle in {c.BEAT} seconds...")
         time.sleep(c.BEAT)
         
 garden = GardenState()
-director = Director(garden)
+
+telegram_director = TelegramDirector(garden)
+director = Director(garden, telegram_director)
 App.run()

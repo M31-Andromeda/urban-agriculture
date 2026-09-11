@@ -22,7 +22,7 @@ String read_modulino_light() {
     Wire.beginTransmission(0x53);
     Wire.write(0x0A);
     Wire.endTransmission(false);
-    
+
     uint32_t raw_ir = 0;
     if (Wire.requestFrom(0x53, 3) >= 3) {
         raw_ir = Wire.read() | (Wire.read() << 8) | ((uint32_t)Wire.read() << 16);

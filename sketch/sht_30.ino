@@ -1,4 +1,4 @@
-#include <Wire.h>                  // Std Arduino lib - I2C COM
+#include <Wire.h>
 
 #define SHT30_ADDR 0x44
 
@@ -21,7 +21,7 @@ String read_sht30() {
         data[2] = Wire.read();
         data[3] = Wire.read(); // Humidity
         data[4] = Wire.read(); // Humidity
-        data[5] = Wire.read(); 
+        data[5] = Wire.read();
 
         uint16_t t_raw = (data[0] << 8) | data[1];
         float temp = -45.0 + (175.0 * t_raw / 65535.0); 

@@ -45,7 +45,6 @@ class Sensor:
         return self.clean_data
 
     def _map(self, value):
-        """Override in subclasses to transform the raw value."""
         return value
 
 
@@ -65,13 +64,11 @@ class MoistV1_2(Sensor):
         self.max_val = max_val
 
     def _map(self, value):
-        # Inverted on purpose: this probe's raw ADC reading goes DOWN as the soil gets wetter.
         percentage = ((self.max_val - value) / (self.max_val - self.min_val)) * 100.0
         return max(0.0, min(100.0, percentage))
 
        
 class MoistOrchest:
-    """Averages readings from multiple moisture probes, skipping NaNs."""
     def __init__(self, moist_sensors):
         self.moist_sensors = moist_sensors
         self.clean_data = (0.0,)
@@ -117,8 +114,8 @@ class Ina219(Sensor):
 class SensorOrchestra:
     def __init__(self, garden):
         self.garden = garden
-
         moist_sensor_list = []
+        
         for sensor_config in c.MOIST_SENSORS_CONFIG:
             moist_sensor_list.append(MoistV1_2(*sensor_config))
 
