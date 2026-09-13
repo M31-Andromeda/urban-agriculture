@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "python"))
 import config as c  # noqa: E402
 
 SEED = 15
-N_SAMPLES = 4000
+N_SAMPLES = 8000
 OUTPUT_PATH = Path(__file__).resolve().parent / "synthetic_dataset.csv"
 
 
@@ -50,6 +50,12 @@ class SyntheticDataGenerator:
         env_hum = self.rng.uniform(15, 95)
         plants_temp = max(0.0, min(50.0, env_temp + self.rng.gauss(-1.5, 2.0)))
         plants_hum = max(0.0, min(100.0, env_hum + self.rng.gauss(5.0, 8.0)))
+        
+
+        if self.rng.random() < 0.07:
+            anomaly_max = round(self.rng.uniform(35, 46), 2)
+        else:
+            anomaly_max = round(max(24.0, self.rng.gauss(30, 3.5)), 2)
 
         return {
             "soil_moisture_(%)": round(moisture, 2),
@@ -60,13 +66,14 @@ class SyntheticDataGenerator:
             "light_intensity_(lux)": round(light, 2),
             "power_(W)": round(power, 2),
             "soil_moisture_baseline": round(moist_baseline, 2),
+            "max_anomaly_detected": round(anomaly_max, 2)
         }
 
     def moisture_bounds(self, baseline):
         margin = c.THRESHOLDS["moist_baseline_margin_pct"]
         return baseline - margin, baseline + margin
 
-    def labeler(self, reading) -> str:
+    def labeler(self, reading):
         moisture = reading["soil_moisture_(%)"]
         env_temp = reading["env_temperature_(°C)"]
         env_hum = reading["env_humidity_(%)"]
@@ -75,8 +82,9 @@ class SyntheticDataGenerator:
         light = reading["light_intensity_(lux)"]
         power = reading["power_(W)"]
         baseline = reading["soil_moisture_baseline"]
+        max_anomaly = reading["max_anomaly_detected"]
 
-        values = [moisture, env_temp, env_hum, plants_temp, plants_hum, light, power, baseline]
+        values = [moisture, env_temp, env_hum, plants_temp, plants_hum, light, power, baseline, max_anomaly]
         if any(isinstance(v, float) and math.isnan(v) for v in values):
             return "INSUFFICIENT_DATA"
 
@@ -84,6 +92,9 @@ class SyntheticDataGenerator:
         env_temp_low, env_temp_high = c.THRESHOLDS["env_temp_low"], c.THRESHOLDS["env_temp_high"]
         plants_temp_low, plants_temp_high = c.THRESHOLDS["plants_temp_low"], c.THRESHOLDS["plants_temp_high"]
         is_night = light < c.THRESHOLDS["light_night_lux"]
+
+        if max_anomaly > c.THRESHOLDS["max_anomaly_allowed"] and light > c.THRESHOLDS["camera_lux_threshold"]:
+            return "ANOMALY_DETECTED"
 
         if moisture < moist_low or moisture < c.THRESHOLDS["moist_absolute_floor_pct"]:
             if power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):

@@ -21,6 +21,7 @@ class DecisionOrchestra:
     def predict(self):
         with self.garden.lock:
             reading = self.garden.sensors_readings.copy()
+            max_anomaly = self.garden.image_readings["anomaly_max_score"]
         moist_history = self.data_orchestra.read_column_history("soil_moisture_(%)", c.THRESHOLDS["moist_baseline_window"])
         moisture_baseline = sum(moist_history) / len(moist_history) if moist_history else reading["soil_moisture_(%)"]
         predictor = [
@@ -29,6 +30,7 @@ class DecisionOrchestra:
             "env_temperature_(°C)": reading["env_temperature_(°C)"], "env_humidity_(%)": reading["env_humidity_(%)"],
             "plants_temp_(°C)": reading["plants_temp_(°C)"], "plants_hum_(%)": reading["plants_hum_(%)"],
             "light_intensity_(lux)": reading["light_intensity_(lux)"], "power_(W)": reading["power_(W)"],
+            "max_anomaly_detected": max_anomaly
             },
         ]
         df = pd.DataFrame(predictor)

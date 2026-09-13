@@ -80,6 +80,7 @@ class MoistOrchest:
             for s in self.moist_sensors:
                 s.read()
                 self.raw_data.append(s.get_value()["soil_moisture_(%)"])
+            #logger.info(self.raw_data)
             self._parse()
         except Exception as e:
             logger.error(f"MoistOrchest: {e}")

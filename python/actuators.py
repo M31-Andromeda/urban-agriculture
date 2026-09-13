@@ -35,13 +35,14 @@ class Actuator:
         
     def get_state(self):
         return self.state
-        
-        
+
+
 class ActuatorOrchestra:
     def __init__(self, telegram_director=None):
         self.water_pump = Actuator("water_pump", c.WATER_PUMP_PIN)
         self.fans = Actuator("fans", c.FANS_PIN)
         self.telegram = telegram_director
+        self.previous_prediction = None
 
     def stop_all(self):
         logger.info("Emergency stop activated. Setting all actuators to LOW.")
@@ -49,11 +50,20 @@ class ActuatorOrchestra:
         self.fans.set_state("LOW")
 
     def _notify(self, prediction, probability):
-        if self.telegram:
-            self.telegram.notify(prediction, probability=probability)
+        if not self.telegram:
+            return
+        if self._skip_repeat_notify:
+            logger.info(f"Prediction {prediction} is the same as the previous cycle; skipping Telegram notification.")
+            return
+        self.telegram.notify(prediction, probability=probability)
 
     def run(self, predictions):
         prediction, probability = sorted(predictions.items(), key = lambda x:-float(x[1]))[0]
+
+        self._skip_repeat_notify = (
+            prediction == self.previous_prediction and prediction not in ("WATER", "VENTILATE", "ANOMALY_DETECTED")
+        )
+        self.previous_prediction = prediction
 
         if prediction == "OK" or prediction == "NIGHT_OK":
             logger.info(f"Prediction is {prediction}. No action required.")
@@ -67,7 +77,7 @@ class ActuatorOrchestra:
             self._notify(prediction, probability)
 
         elif prediction == "EXCESS_WATER":
-            logger.info("Prediction is EXCESS_WATER. Stop watering.")
+            logger.info("Prediction is EXCESS_WATER.")
             self._notify(prediction, probability)
 
         elif prediction == "HYDRIC_STRESS_ALERT":
@@ -101,6 +111,10 @@ class ActuatorOrchestra:
             logger.info("Prediction is NOT_ABLE_TO_VENTILATE.")
             self._notify(prediction, probability)
 
+        elif prediction == "ANOMALY_DETECTED":
+            logger.info("Prediction is ANOMALY_DETECTED.")
+            self._notify(prediction, probability)
+            
         elif prediction == "INSUFFICIENT_DATA":
             logger.info("Prediction is INSUFFICIENT_DATA. Skipping actuation this cycle.")
 

@@ -13,10 +13,10 @@ import config as c
 logger = Logger("DataManager")
 
 class DataOrchestra:
-    def __init__(self, garden, max_rows=c.rows_logged):
+    def __init__(self, garden, max_rows=c.ROWS_LOGGED):
         self.garden = garden
-        self.file_name = "sensors_data.csv"
-        self.filepath = c.sensors_csv_path
+        self.filepath = c.garden_data_path
+        self.file_name = self.filepath.name
         self.max_rows = max_rows
         self.rows_num = self._count_csv_rows()
         self.headers = ["Time"] + list(self.garden.keys) + ["label_1", "label_2", "label_3"]
@@ -85,7 +85,9 @@ class DataOrchestra:
             
             if file_exists and self.rows_num >= self.max_rows:
                 with open(file=self.filepath, mode='r', newline="") as file:
-                    rows = list(csv.reader(file))[-(self.max_rows - 1):]
+                    data_rows = list(csv.reader(file))[1:]  # drop the header row before trimming
+                    keep = max(0, self.max_rows - 1)
+                    rows = data_rows[-keep:] if keep else []
                     rows.append(new_row)
                     
                 with open(self.filepath, mode='w', newline="") as file:

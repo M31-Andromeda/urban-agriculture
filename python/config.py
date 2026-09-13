@@ -17,15 +17,19 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 parent = Path(__file__).resolve().parent.parent
 data_directory = parent / "data"
 decision_model_training_directory = parent / "decision_model_training"
+vision_model_directory = parent / "vision_model"
 
-sensors_csv_path = data_directory / "sensors_data.csv"
+garden_data_path = data_directory / "garden_data.csv"
 telegram_subscribers_path = data_directory / "telegram_subscribers.json"
+raw_image_path = data_directory / "current_image.jpg"
+output_image_path = data_directory / "output_image.jpg"
+image_model_path = str(vision_model_directory / "fomo-ad_vision_model_4_0.eim")
 
 decision_model_name = "decision_model.joblib"
 
 BEAT = 20*60
 DAYS_LOGGED = 2
-rows_logged = int(DAYS_LOGGED * 24 * 60 * 60 / BEAT)
+ROWS_LOGGED = int(DAYS_LOGGED * 24 * 60 * 60 / BEAT)
 
 WATERING_DURATION = 30
 VENTILATION_DURATION = 60
@@ -46,6 +50,9 @@ THRESHOLDS = {
     "moist_baseline_window": 24*60*60/BEAT,
     "moist_baseline_margin_pct": 10.0,
     "moist_absolute_floor_pct": 40.0,
+    "max_anomaly_allowed":37,
+    "camera_lux_threshold": 500
+    
 }
 
 FEATURES = [
@@ -53,6 +60,7 @@ FEATURES = [
     "env_temperature_(°C)", "env_humidity_(%)",
     "plants_temp_(°C)", "plants_hum_(%)",
     "light_intensity_(lux)", "power_(W)",
+    "max_anomaly_detected"
 ]
 
 CAMERA_SETTINGS = {
@@ -60,5 +68,3 @@ CAMERA_SETTINGS = {
     "resolution" : (1920, 1080),
     "jpeg_quality" : 95
 }
-
-IMAGE_MODEL_PATH = "  "

@@ -21,6 +21,7 @@ ALERT_MESSAGES = {
     "LOW_TEMP_ALERT": "Low temperature alert.",
     "NOT_ABLE_TO_WATER": "Watering was needed but the water pump could not be activated.",
     "NOT_ABLE_TO_VENTILATE": "Ventilation was needed but the fans could not be activated.",
+    "ANOMALY_DETECTED": "⚠️ Visual anomaly detected in the garden camera.",
 }
 
 
@@ -73,6 +74,12 @@ class TelegramDirector:
         text = ALERT_MESSAGES.get(label, f"Garden update: {label}")
         if probability is not None:
             text += f" (confidence: {float(probability) * 100:.0f}%)"
+
+        if label == "ANOMALY_DETECTED" and c.output_image_path.exists():
+            for chat_id in subscribers:
+                self._send_photo(chat_id, c.output_image_path, caption=text)
+            return
+
         for chat_id in subscribers:
             self._send_message(chat_id, text)
 
@@ -116,10 +123,20 @@ class TelegramDirector:
 
         if command == "/start":
             self._cmd_start(chat_id)
-        elif command == "/estado":
+        elif command in ("/estado", "/status"):
             self._cmd_estado(chat_id, args)
+        elif command in ("/picture", "/foto"):
+            self._cmd_picture(chat_id)
+        elif command in ("/anomaly_picture", "/foto_anomalia"):
+            self._cmd_anomaly_picture(chat_id)
         else:
-            self._send_message(chat_id, "Unknown command. Available: /start, /estado [YYYY-MM-DD HH:MM]")
+            self._send_message(
+                chat_id,
+                "Unknown command. Available:\n"
+                "• /estado or /status [YYYY-MM-DD HH:MM]\n"
+                "• /picture or /foto\n"
+                "• /anomaly_picture or /foto_anomalia",
+            )
 
     def _cmd_start(self, chat_id):
         is_new = self._add_subscriber(chat_id)
@@ -130,8 +147,10 @@ class TelegramDirector:
             "Hello! I'm your smart urban garden bot.\n"
             "This chat is now registered for automatic alerts (watering, ventilation, faults...).\n\n"
             "Available commands:\n"
-            "• /estado — latest sensor reading\n"
-            "• /estado YYYY-MM-DD HH:MM — closest historical reading to that time"
+            "• /estado or /status — latest sensor reading\n"
+            "• /estado YYYY-MM-DD HH:MM — closest historical reading to that time\n"
+            "• /picture or /foto — latest garden photo\n"
+            "• /anomaly_picture or /foto_anomalia — latest anomaly-detection photo"
         )
 
     def _cmd_estado(self, chat_id, args):
@@ -152,21 +171,33 @@ class TelegramDirector:
             return
         self._send_message(chat_id, self._format_row(header, row))
 
+    def _cmd_picture(self, chat_id):
+        if c.raw_image_path.exists():
+            self._send_photo(chat_id, c.raw_image_path, caption="Latest garden photo.")
+        else:
+            self._send_message(chat_id, "No photo available yet.")
+
+    def _cmd_anomaly_picture(self, chat_id):
+        if c.output_image_path.exists():
+            self._send_photo(chat_id, c.output_image_path, caption="Latest anomaly-detection photo.")
+        else:
+            self._send_message(chat_id, "No anomaly-detection photo available yet.")
+
     def _last_row(self):
-        if not c.sensors_csv_path.exists():
+        if not c.garden_data_path.exists():
             return None
         last_row = None
-        with open(c.sensors_csv_path, newline="") as f:
+        with open(c.garden_data_path, newline="") as f:
             for row in csv.DictReader(f):
                 last_row = row
         return last_row
 
     def _closest_row(self, target_dt):
-        if not c.sensors_csv_path.exists():
+        if not c.garden_data_path.exists():
             return None
 
         best_row, best_diff = None, None
-        with open(c.sensors_csv_path, newline="") as f:
+        with open(c.garden_data_path, newline="") as f:
             for row in csv.DictReader(f):
                 try:
                     row_dt = datetime.strptime(row["Time"], "%Y-%m-%d %H:%M:%S")
@@ -206,3 +237,15 @@ class TelegramDirector:
                 logger.error(f"Telegram sendMessage failed ({response.status_code}): {response.text}")
         except Exception as e:
             logger.error(f"Error sending Telegram message: {e}")
+
+    def _send_photo(self, chat_id, image_path, caption=None):
+        try:
+            with open(image_path, "rb") as photo:
+                data = {"chat_id": chat_id}
+                if caption:
+                    data["caption"] = caption
+                response = requests.post(f"{self._api_base}/sendPhoto", data=data, files={"photo": photo}, timeout=30)
+            if response.status_code != 200:
+                logger.error(f"Telegram sendPhoto failed ({response.status_code}): {response.text}")
+        except Exception as e:
+            logger.error(f"Error sending Telegram photo: {e}")

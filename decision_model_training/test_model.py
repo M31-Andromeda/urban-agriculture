@@ -15,9 +15,10 @@ model = joblib.load(c.decision_model_name)
 samples = [
     {
         "soil_moisture_(%)": 42.03, "soil_moisture_baseline": 39.29,
-        "env_temperature_(°C)": 38.4, "env_humidity_(%)": 92.37,
-        "plants_temp_(°C)": 34.97, "plants_hum_(%)": 100,
+        "env_temperature_(°C)": 32.4, "env_humidity_(%)": 60,
+        "plants_temp_(°C)": 34.97, "plants_hum_(%)": 70,
         "light_intensity_(lux)": 157285.8, "power_(W)": 4.95,
+        "max_anomaly_detected":37
     },
 ]
 
