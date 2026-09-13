@@ -35,6 +35,23 @@ pump and fans ready to act automatically when the decision system calls for it.
   `/estado` or `/status` for the latest reading, `/picture`/`/foto` and `/anomaly_picture`/`/foto_anomalia`
   to pull the latest photos straight from the chat.
 
+## Using the Telegram bot
+
+No setup needed — anyone can check on the garden straight from Telegram:
+
+1. Open Telegram and search for **[@UGardenbot](https://t.me/UGardenbot)**.
+2. Send **`/start`**. That's it — your chat is now subscribed to automatic alerts (watering,
+   ventilation, faults, visual anomalies...).
+
+From there, these commands work any time:
+
+| Command | What it does |
+|---|---|
+| `/estado` or `/status` | Latest sensor reading and the model's current prediction |
+| `/estado YYYY-MM-DD HH:MM` | Closest historical reading to that date/time |
+| `/picture` or `/foto` | Latest photo of the garden |
+| `/anomaly_picture` or `/foto_anomalia` | Latest anomaly-detection photo (with boxes drawn) |
+
 ## Architecture
 
 ```
