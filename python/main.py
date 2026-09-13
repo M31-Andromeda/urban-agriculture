@@ -68,8 +68,9 @@ class Director:
             self.data_orchestra.save_local()
             self.data_orchestra.save_online()
             self.actuator_orchestra.run(self.garden.predictions)
+            
         except Exception as e:
-            logger.error(f"Cycle failed, skipping to next one: {e}")
+            logger.exception(f"Cycle failed, skipping to next one: {e}")
 
         logger.info(f"Cycle completed. Waiting for the next cycle in {c.BEAT} seconds...")
         time.sleep(c.BEAT)

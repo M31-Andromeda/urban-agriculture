@@ -43,7 +43,11 @@ class DecisionOrchestra:
         probs = self.model.predict_proba(df[c.FEATURES])
         
         raw_top = sorted(zip(self.model.classes_, probs[0]), key=lambda x: -x[1])[:3]
-        self.garden.predictions = {f"{label}":f"{p:.2f}" for label, p in raw_top}
+        clean_top = {f"{label}":f"{p:.2f}" for label, p in raw_top}
+        with self.garden.lock:
+            self.garden.predictions = clean_top
+
+        logger.info(f"Predictions calculated: {clean_top}")
         
 
     
