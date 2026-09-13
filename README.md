@@ -132,8 +132,8 @@ arduino-cli compile --upload --fqbn arduino:zephyr:unoq .
 # MPU side — run the app
 source arduino_env/bin/activate
 cd python
-export URL_APPSCRIPT="https://script.google.com/macros/s/XXX/exec"
-export TELEGRAM_BOT_TOKEN="123456:ABC-your-bot-token"
+export URL_APPSCRIPT="EXAMPLE"
+export TELEGRAM_BOT_TOKEN="EXAMPLE"
 python3 main.py
 ```
 
