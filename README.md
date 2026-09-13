@@ -1,10 +1,11 @@
 # 🌱 Urban Agriculture — Development of a Smart Edge-AI Garden
 a project by:
-Roger Botana Miralles (GEI UPC) roger.botana@estudiantat.upc.edu
-Pol Ruiz Prieto (GEI UPC) pol.ruiz.prieto@estudiantat.upc.edu
-Hugo ANdreu SObrino (GIA UPC) hugo.andreu.sobrino@estudiantat.upc.edu
+- **Roger Botana Miralles** (GEI UPC) roger.botana@estudiantat.upc.edu  
+- **Pol Ruiz Prieto** (GEI UPC) pol.ruiz.prieto@estudiantat.upc.edu 
+- **Hugo Andreu Sobrino** (GIA UPC) hugo.andreu.sobrino@estudiantat.upc.edu 
 
-An end-to-end monitoring and decision system for a real urban garden, built entirely by the Urban Agriculture 
+
+An end-to-end monitoring and decision system for a real urban garden, built entirely by the Urban Agriculture
 Group — hardware and software both — around an **Arduino UNO Q**, over the summer of 2026. Every part of the 
 physical build (the wooden enclosure included) and the software arquitecture has been designed and written 
 by our team from scratch.
