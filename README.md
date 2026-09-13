@@ -104,7 +104,7 @@ needing to log in and start it by hand.
 
 The project still follows the standard App Lab layout (`app.yaml`, `sketch/`, `python/`) and can be imported
  later with `arduino-app-cli app new --from-app`, but day-to-day development happens with a plain
-`arduino-cli` setup and a Python virtual environment instead — see `documentacion` for why.
+`arduino-cli` setup and a Python virtual environment instead — see `documentation` for why.
 
 ## Tech stack
 
@@ -150,53 +150,6 @@ cd decision_model_training
 python3 generate_synthetic_data.py   # writes synthetic_dataset.csv
 python3 train_model.py               # writes decision_model.joblib
 ```
-
-## Known limitations & lessons learned
-
-Worth being upfront about these rather than hiding them behind a demo that happens to work on the day.
-
-**The decision model never sees real sensor data.** Getting a trustworthy ground truth — the actually
-correct action for a given past moment — would mean an expert manually reviewing a long history of logs,
-which wasn't realistic within this project's scope. Instead, the training set is entirely synthetic: a
-rule-based labeler (driven by the same thresholds the rest of the app uses) generates thousands of
-plausible sensor readings and their "correct" outcome, and the Random Forest learns to reproduce and
-interpolate that logic. It's a deliberate trade-off — the model is only ever as good as the thresholds we
-hand-coded, and it has never been validated against real, messy, correlated garden data — but it gave us a
-working, probabilistic decision layer instead of a brittle if/else chain.
-
-**The vision model detects anomalies, not specific problems.** The original plan was a model that could
-point at a specific issue — a dry or diseased leaf — but that requires a labeled dataset built by hand,
-region by region, for each defect. We went with unsupervised anomaly detection instead: it only needs
-photos of a normal, healthy garden to train on, and flags whatever doesn't statistically match, with none
-of that manual labeling effort. The trade-off is real: in testing, it reliably reacts to a foreign object
-appearing in frame, but a moderately dry leaf blends into the natural color variation the model already
-treats as normal, so it won't reliably catch the exact problem we originally wanted it to. On top of that,
-the webcam's autofocus wasn't always reliable at the working distance we mounted it at, which cost us some
-of the sharpness the model could have used.
-
-**The capacitive soil-moisture probes are the weakest link in the sensor stack.** They drift over time and
-are noisy enough that we average multiple readings and reject outliers in the sketch just to get a usable
-signal — and even then, the absolute values shouldn't be trusted too far. For a next hardware revision, a
-more stable and better-calibrated soil sensor is a priority.
-
-**The water pumps are consumer-grade and it shows.** We hit multiple failures during development with the
-low-cost pumps we had on hand — not a software problem, but real enough that the actuator code logs and
-alerts on a failed activation rather than assuming it worked, and it's the first thing we'd upgrade in a
-physical rebuild.
-
-**Battery life is tight for what we're asking of it.** Between the board itself, the camera doing periodic
-inference, and the pump/fans drawing current when active, the current battery setup is undersized for
-sustained, unattended operation — fine for a demo window, not yet for a real deployment cycle.
-
-See `documentacion` for the rest of the technical postmortem (sensor/firmware quirks, integration
-issues, and the physical build in more detail) — still being filled in with photos and screenshots.
-
-## What's next
-
-- Swap the soil-moisture probes for a more stable sensor and recalibrate.
-- Move to a proper irrigation pump and validate battery autonomy under real load.
-- Collect a real (not synthetic) labeled dataset over a full growing cycle, for both the decision model and
-  a future defect-specific vision model.
 
 ## Acknowledgments
 
