@@ -117,7 +117,7 @@ The project still follows the standard App Lab layout (`app.yaml`, `sketch/`, `p
 | Reporting | Google Sheets (Apps Script webhook), Telegram Bot API (hand-rolled client) |
 | Deployment | systemd service, always-on on the board |
 
-## Running it manually (no Applab)
+## Running it manually (no Applab no Systemctl)
 
 ```bash
 # Environment and dependencies
