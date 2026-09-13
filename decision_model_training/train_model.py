@@ -1,3 +1,5 @@
+"""Trains the decision RandomForest on the synthetic dataset and saves it to disk."""
+
 import joblib
 import pandas as pd
 import sys

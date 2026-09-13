@@ -1,3 +1,5 @@
+"""Controls the actuators (water pump, fans) over Bridge."""
+
 from arduino.app_utils import *
 
 import config as c
@@ -6,6 +8,8 @@ import time
 logger = Logger("Actuators")
 
 class Actuator:
+    """A single actuator driven by Bridge on one MCU pin."""
+
     _command = "set_actuator"
     
     def __init__(self, name, pin):
@@ -14,7 +18,8 @@ class Actuator:
         self.pin = pin
          
     def set_state(self, new_state):
-        
+        """Changes the actuator's state ("HIGH"/"LOW" or a raw PWM value) over Bridge."""
+
         new_state = 255 if new_state == "HIGH" else 0 if new_state == "LOW" else new_state
         
         params = [self.pin, new_state]
@@ -31,6 +36,7 @@ class Actuator:
             self._on_error()
             
     def _on_error(self):
+        """Logs that the state change could not be applied."""
         logger.error(f"The state of the actuator {self.name} could not be modified.")
         
     def get_state(self):
@@ -38,6 +44,8 @@ class Actuator:
 
 
 class ActuatorOrchestra:
+    """Decides which actuator to trigger based on the prediction and notifies via Telegram."""
+
     def __init__(self, telegram_director=None):
         self.water_pump = Actuator("water_pump", c.WATER_PUMP_PIN)
         self.fans = Actuator("fans", c.FANS_PIN)
@@ -45,11 +53,13 @@ class ActuatorOrchestra:
         self.previous_prediction = None
 
     def stop_all(self):
+        """Turns off both the water pump and the fans (emergency stop)."""
         logger.info("Emergency stop activated. Setting all actuators to LOW.")
         self.water_pump.set_state("LOW")
         self.fans.set_state("LOW")
 
     def _notify(self, prediction, probability):
+        """Sends the Telegram alert, unless it's a repeat of the previous prediction."""
         if not self.telegram:
             return
         if self._skip_repeat_notify:
@@ -58,6 +68,7 @@ class ActuatorOrchestra:
         self.telegram.notify(prediction, probability=probability)
 
     def run(self, predictions):
+        """Takes the highest-probability prediction and runs the matching action."""
         prediction, probability = sorted(predictions.items(), key = lambda x:-float(x[1]))[0]
 
         self._skip_repeat_notify = (

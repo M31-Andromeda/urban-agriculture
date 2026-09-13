@@ -1,5 +1,7 @@
+"""Shared constants, paths and thresholds used across the whole project."""
 
 import os
+import sys
 from pathlib import Path
 
 MOIST_SENSORS_CONFIG = [
@@ -15,6 +17,14 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 
 parent = Path(__file__).resolve().parent.parent
+
+# `arduino/app_utils` is vendored at the repo root (not a PyPI package), so we
+# add it to sys.path here to make it importable without installing anything.
+# `config` must be imported before `arduino.app_utils` at every entry point
+# (see main.py).
+if str(parent) not in sys.path:
+    sys.path.insert(0, str(parent))
+
 data_directory = parent / "data"
 decision_model_training_directory = parent / "decision_model_training"
 vision_model_directory = parent / "vision_model"
@@ -23,7 +33,7 @@ garden_data_path = data_directory / "garden_data.csv"
 telegram_subscribers_path = data_directory / "telegram_subscribers.json"
 raw_image_path = data_directory / "current_image.jpg"
 output_image_path = data_directory / "output_image.jpg"
-image_model_path = str(vision_model_directory / "fomo-ad_vision_model_4_0.eim")
+image_model_path = str(vision_model_directory / "fomo-ad_vision_model_5_0.eim")
 
 decision_model_name = "decision_model.joblib"
 
@@ -49,7 +59,8 @@ THRESHOLDS = {
     "light_night_lux": 5.0,
     "moist_baseline_window": 24*60*60/BEAT,
     "moist_baseline_margin_pct": 10.0,
-    "moist_absolute_floor_pct": 40.0,
+    "moist_absolute_low_pct": 40,
+    "moist_absolute_top_pct": 75,
     "max_anomaly_allowed":37,
     "camera_lux_threshold": 500
     

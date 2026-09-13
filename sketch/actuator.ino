@@ -1,6 +1,6 @@
 #include <Wire.h>
 
-
+// Sets the pump and fan pins to LOW (off).
 String actuator_initialization() {
     pinMode(6, OUTPUT); // Water Pump
     analogWrite(6, 0);
@@ -10,6 +10,7 @@ String actuator_initialization() {
     return "ok";
 }
 
+// Writes a PWM value to the given pin (called from Python over Bridge).
 String set_actuator(int pin, int state) {
     analogWrite(pin, state);
     return "ok";

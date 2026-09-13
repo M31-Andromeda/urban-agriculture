@@ -1,3 +1,4 @@
+"""Predicts the garden's next action from sensor readings and the visual anomaly score."""
 
 import pandas as pd
 import joblib
@@ -12,6 +13,8 @@ logger = Logger("DecisionSystem")
 
 
 class DecisionOrchestra:
+    """Loads the trained model and predicts the garden's action every cycle."""
+
     def __init__(self, garden, data_orchestra, model_name=c.decision_model_name):
         self.garden = garden
         self.data_orchestra = data_orchestra
@@ -19,6 +22,7 @@ class DecisionOrchestra:
         self.model = joblib.load(self.model_path)
 
     def predict(self):
+        """Builds this cycle's features and stores the top-3 predictions in GardenState."""
         with self.garden.lock:
             reading = self.garden.sensors_readings.copy()
             max_anomaly = self.garden.image_readings["anomaly_max_score"]

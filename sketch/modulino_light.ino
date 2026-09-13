@@ -1,6 +1,6 @@
 #include <Wire.h>
 
-
+// Initializes the light Modulino over I2C.
 String modulino_light_initialization() {
     Wire.begin();
     delay(50);
@@ -17,6 +17,7 @@ String modulino_light_initialization() {
     }
 }
 
+// Reads ambient light and raw infrared from the Modulino.
 String read_modulino_light() {
     // --- READ INFRARED ---
     Wire.beginTransmission(0x53);

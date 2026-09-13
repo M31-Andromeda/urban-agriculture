@@ -1,3 +1,5 @@
+"""Generates a synthetic, rule-labeled dataset of garden readings."""
+
 import csv
 import math
 import random
@@ -14,12 +16,15 @@ OUTPUT_PATH = Path(__file__).resolve().parent / "synthetic_dataset.csv"
 
 
 class SyntheticDataGenerator:
+    """Samples plausible garden readings and labels them with the app's own threshold logic."""
+
     def __init__(self, rng_seed=SEED, n_samples=N_SAMPLES, output_path=OUTPUT_PATH):
         self.rng = random.Random(rng_seed)
         self.n_samples = n_samples
         self.output_path = output_path
 
     def sample_light(self):
+        """Samples a plausible light intensity (night/shade/direct sun)."""
         r = self.rng.random()
         if r < 0.19:
             return self.rng.uniform(1, 9999)
@@ -30,6 +35,7 @@ class SyntheticDataGenerator:
         return self.rng.uniform(50000, 157285.8)
 
     def sample_reading(self):
+        """Samples one full synthetic sensor reading, with plausibly correlated fields."""
         is_night = self.rng.random() < 0.35
         light = 0.0 if is_night else self.sample_light()
 
@@ -70,10 +76,12 @@ class SyntheticDataGenerator:
         }
 
     def moisture_bounds(self, baseline):
+        """Returns the (low, high) acceptable moisture range around the baseline."""
         margin = c.THRESHOLDS["moist_baseline_margin_pct"]
         return baseline - margin, baseline + margin
 
     def labeler(self, reading):
+        """Labels a reading with the "correct" action, using the same rules as the app."""
         moisture = reading["soil_moisture_(%)"]
         env_temp = reading["env_temperature_(°C)"]
         env_hum = reading["env_humidity_(%)"]
@@ -126,6 +134,7 @@ class SyntheticDataGenerator:
         return "OK"
 
     def build_row(self):
+        """Builds one full row (reading + label), with occasional NaN simulating sensor failures."""
         reading = self.sample_reading()
         if self.rng.random() < 0.03:
             reading[self.rng.choice(list(reading.keys()))] = float("nan")
@@ -133,6 +142,7 @@ class SyntheticDataGenerator:
         return reading
 
     def main(self):
+        """Generates the full dataset and writes it to CSV, printing the label distribution."""
         rows = [self.build_row() for _ in range(self.n_samples)]
 
         with open(self.output_path, "w", newline="") as f:

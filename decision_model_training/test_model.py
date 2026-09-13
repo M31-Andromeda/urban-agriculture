@@ -1,3 +1,5 @@
+"""Manual check: compares the model's prediction against the rule labeler for a fixed sample."""
+
 import sys
 import joblib
 import pandas as pd

@@ -1,3 +1,5 @@
+"""Takes a photo of the garden and screens it for anomalies with the FOMO-AD model."""
+
 import cv2
 from arduino.app_utils import *
 from edge_impulse_linux.image import ImageImpulseRunner
@@ -12,6 +14,7 @@ import config as c
 logger = Logger("VisionSystem")
 
 class ImageOrchestra:
+    """Takes camera photos and detects visual anomalies with the Edge Impulse model."""
 
     def __init__(self, garden):
         self.model = ImageImpulseRunner(c.image_model_path)
@@ -20,6 +23,7 @@ class ImageOrchestra:
         self.garden = garden
 
     def disable_backlight_compensation(self):
+        """Disables the camera's backlight compensation (v4l2-ctl)."""
         try:
             v4l2_device = f"/dev/video{c.CAMERA_SETTINGS['camera_index']}"
             subprocess.run(
@@ -30,6 +34,7 @@ class ImageOrchestra:
             logger.warning(f"Could not set backlight_compensation=0: {e}")
 
     def take_photo(self):
+        """Captures one camera frame and saves it as the current raw photo."""
         self.disable_backlight_compensation()
 
         cap = cv2.VideoCapture(c.CAMERA_SETTINGS["camera_index"], cv2.CAP_V4L2)
@@ -58,9 +63,11 @@ class ImageOrchestra:
     
 
     def delete_image(self, imagePath):
+        """Deletes an image if it exists (no-op otherwise)."""
         imagePath.unlink(missing_ok=True)
 
     def store_foto(self, imagePath, image):
+        """Saves a frame as a JPEG at the given path."""
         cv2.imwrite(str(imagePath), image, [cv2.IMWRITE_JPEG_QUALITY, c.CAMERA_SETTINGS["jpeg_quality"]])
 
 
@@ -80,6 +87,7 @@ class ImageOrchestra:
         return boxes
 
     def _draw_boxes(self, image, boxes, max_score, mean_score):
+        """Draws the anomaly boxes and scores on the image, in-place."""
         for box in boxes:
             x1, y1, x2, y2 = box["bounding_box_xyxy"]
             cv2.rectangle(image, (x1, y1), (x2, y2), (0, 0, 255), 2)
@@ -118,6 +126,7 @@ class ImageOrchestra:
             self.garden.image_readings = output_dict
 
     def detect_anomaly(self):
+        """Takes and analyzes a photo if there's enough light; otherwise leaves neutral readings."""
 
         with self.garden.lock:
             light = self.garden.sensors_readings["light_intensity_(lux)"]
@@ -151,6 +160,7 @@ class ImageOrchestra:
         self._analyze(image)
 
     def close(self):
+        """Releases the Edge Impulse runtime resources."""
         self.model.stop()
 
 

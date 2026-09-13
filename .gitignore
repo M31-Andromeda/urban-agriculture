@@ -2,8 +2,6 @@ arduino_env/
 venv/
 env/
 
-.claude/
-CLAUDE.md
 
 __pycache__/
 *.pyc

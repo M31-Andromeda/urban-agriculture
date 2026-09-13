@@ -1,3 +1,5 @@
+"""Logs each cycle to a local CSV and sends it to Google Sheets."""
+
 from arduino.app_utils import *
 import csv
 import os
@@ -13,6 +15,8 @@ import config as c
 logger = Logger("DataManager")
 
 class DataOrchestra:
+    """Saves each cycle (sensors + predictions) to a local CSV and optionally to Sheets."""
+
     def __init__(self, garden, max_rows=c.ROWS_LOGGED):
         self.garden = garden
         self.filepath = c.garden_data_path
@@ -25,11 +29,13 @@ class DataOrchestra:
         self.labels = dict()
         
     def update_data(self):
+        """Copies the current readings and predictions from the shared GardenState."""
         with self.garden.lock:
             self.data = self.garden.sensors_readings.copy()
             self.labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
             
     def _count_csv_rows(self):
+        """Counts the existing data rows in the CSV (excluding the header)."""
         if os.path.exists(self.filepath):
             with open(self.filepath, mode='r', newline='') as file:
                 row_count = sum(1 for row in file)
@@ -39,6 +45,7 @@ class DataOrchestra:
         
         
     def read_column_history(self, type_of_measure, rows_num):
+        """Returns the last rows_num valid numeric values of a CSV column."""
         lst_values = list()
         rows_num = int(rows_num)
 
@@ -58,6 +65,7 @@ class DataOrchestra:
                         
 
     def save_online(self):
+        """Posts the current reading to the Google Apps Script webhook, if configured."""
         if not c.URL_APPSCRIPT:
             logger.warning("URL_APPSCRIPT is not set (missing environment variable); skipping online save.")
             return False
@@ -77,6 +85,7 @@ class DataOrchestra:
             logger.error(f"Error in the connection: {e}")
 
     def save_local(self):
+        """Appends the current cycle's row to the CSV, trimming old rows past max_rows."""
         try:
             self.update_data()
             now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")

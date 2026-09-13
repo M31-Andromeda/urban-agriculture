@@ -2,6 +2,8 @@
 #include <Wire.h>
 #include "Arduino_RouterBridge.h"
 #include <SPI.h>
+
+// Registers all Bridge handlers and initializes every sensor/actuator.
 void setup() {
     Bridge.begin();
     Wire.begin();
@@ -28,6 +30,7 @@ void setup() {
 }
 
 
+// All the work happens over Bridge; nothing needed in the loop.
 void loop() {
-    
+
 }

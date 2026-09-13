@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Standalone script: captures periodic garden photos to train/test the vision model."""
 import subprocess
 import sys
 import time
@@ -19,6 +20,7 @@ ACTIVE_HOUR_END = 21
 
 
 def disable_backlight_compensation():
+    """Disables the camera's backlight compensation (v4l2-ctl)."""
     try:
         subprocess.run(
             ["v4l2-ctl", "-d", V4L2_DEVICE, "--set-ctrl=backlight_compensation=0"],
@@ -29,6 +31,7 @@ def disable_backlight_compensation():
 
 
 def take_photo():
+    """Captures one camera frame and saves it with a timestamped filename."""
     disable_backlight_compensation()
     cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_V4L2)
     cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
@@ -54,6 +57,7 @@ def take_photo():
 
 
 def main():
+    """--once mode (single photo) or continuous loop within the active hour window."""
     if "--once" in sys.argv:
         take_photo()
         return

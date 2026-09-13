@@ -2,7 +2,7 @@
 
 #define SHT30_ADDR 0x44
 
-
+// Reads temperature and humidity from the SHT30 (plant-level) over I2C.
 String read_sht30() {
     uint8_t data[6];
 

@@ -3,6 +3,7 @@
 
 #define NUM_ITERS 10;
 
+// Averages several analog readings of one moisture probe, rejecting outliers.
 String read_capacitive_moisture_sensor_v1_2(int pin_index) {
 
 

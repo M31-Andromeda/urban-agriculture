@@ -2,8 +2,9 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME680.h> 
 
-Adafruit_BME680 bme; 
+Adafruit_BME680 bme;
 
+// Initializes the BME680 (ambient temperature/humidity/pressure), retrying a few times.
 String bme680_initialization() {
 
     int count = 0;
@@ -26,6 +27,7 @@ String bme680_initialization() {
     return "ok";
 }
 
+// Reads temperature, humidity and pressure from the BME680.
 String read_bme680() {
     if (!bme.performReading()) {
         return "error";

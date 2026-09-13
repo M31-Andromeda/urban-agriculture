@@ -3,6 +3,7 @@
 
 Adafruit_INA219 ina219;
 
+// Initializes the INA219 current/voltage sensor (solar system power draw).
 String ina219_initialization() {
     Wire.begin();
     delay(50);
@@ -16,6 +17,7 @@ String ina219_initialization() {
     return "ok";
 }
 
+// Reads voltage and current, and computes the power draw.
 String read_ina219() {
     float voltage_V = ina219.getBusVoltage_V();
     float current_mA = ina219.getCurrent_mA();

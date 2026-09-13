@@ -1,3 +1,5 @@
+"""Telegram bot: sends alerts and answers on-demand commands."""
+
 from arduino.app_utils import *
 import csv
 import json
@@ -26,17 +28,21 @@ ALERT_MESSAGES = {
 
 
 def _humanize_key(key):
+    """Turns a key like "env_temperature_(°C)" into ("Env temperature", "°C")."""
     match = re.match(r"^(.*)_\((.*)\)$", key)
     name, unit = match.groups() if match else (key, "")
     return name.replace("_", " ").strip().capitalize(), unit
 
 
 def _humanize_label(label):
+    """Turns a label like "WATER" into readable text ("Water")."""
     return label.replace("_", " ").strip().capitalize()
 
 
 @brick
 class TelegramDirector:
+    """Manages subscribers, outgoing alerts and incoming bot commands."""
+
     def __init__(self, garden):
         self.garden = garden
         self._api_base = f"https://api.telegram.org/bot{c.TELEGRAM_BOT_TOKEN}"
@@ -45,6 +51,7 @@ class TelegramDirector:
 
     @brick.execute
     def listen(self):
+        """Long-polling loop for incoming Telegram commands."""
         if not c.TELEGRAM_BOT_TOKEN:
             logger.warning("TELEGRAM_BOT_TOKEN is not set (missing environment variable); Telegram bot disabled.")
             return
@@ -62,6 +69,7 @@ class TelegramDirector:
                 time.sleep(5)
 
     def notify(self, label, probability=None):
+        """Sends an alert to every subscriber (with a photo when it's a visual anomaly)."""
         if not c.TELEGRAM_BOT_TOKEN:
             logger.warning("Telegram alert skipped: TELEGRAM_BOT_TOKEN not set.")
             return
@@ -84,6 +92,7 @@ class TelegramDirector:
             self._send_message(chat_id, text)
 
     def _load_subscribers(self):
+        """Loads the set of subscribed chat_ids from disk (empty if missing or corrupted)."""
         if not c.telegram_subscribers_path.exists():
             return set()
         try:
@@ -94,6 +103,7 @@ class TelegramDirector:
             return set()
 
     def _add_subscriber(self, chat_id):
+        """Adds a chat_id to the subscribers and persists it; False if it was already there."""
         with self._subscribers_lock:
             if chat_id in self.subscribers:
                 return False
@@ -107,6 +117,7 @@ class TelegramDirector:
         return True
 
     def _get_updates(self, offset, timeout=30):
+        """Asks the Telegram API for pending updates since offset."""
         params = {"timeout": timeout, "allowed_updates": ["message"]}
         if offset is not None:
             params["offset"] = offset
@@ -115,6 +126,7 @@ class TelegramDirector:
         return response.json().get("result", [])
 
     def _handle_update(self, update):
+        """Routes one Telegram update to its matching command."""
         message = update.get("message")
         if not message or "text" not in message:
             return
@@ -139,6 +151,7 @@ class TelegramDirector:
             )
 
     def _cmd_start(self, chat_id):
+        """Registers the chat as a subscriber and sends the welcome message."""
         is_new = self._add_subscriber(chat_id)
         if is_new:
             logger.info(f"New Telegram subscriber registered: {chat_id}")
@@ -154,6 +167,7 @@ class TelegramDirector:
         )
 
     def _cmd_estado(self, chat_id, args):
+        """Replies with the latest reading, or the closest one to a given date/time."""
         if args:
             try:
                 target_dt = datetime.strptime(" ".join(args), "%Y-%m-%d %H:%M")
@@ -172,18 +186,21 @@ class TelegramDirector:
         self._send_message(chat_id, self._format_row(header, row))
 
     def _cmd_picture(self, chat_id):
+        """Sends the latest raw garden photo."""
         if c.raw_image_path.exists():
             self._send_photo(chat_id, c.raw_image_path, caption="Latest garden photo.")
         else:
             self._send_message(chat_id, "No photo available yet.")
 
     def _cmd_anomaly_picture(self, chat_id):
+        """Sends the latest anomaly-detection annotated photo."""
         if c.output_image_path.exists():
             self._send_photo(chat_id, c.output_image_path, caption="Latest anomaly-detection photo.")
         else:
             self._send_message(chat_id, "No anomaly-detection photo available yet.")
 
     def _last_row(self):
+        """Returns the last row of the historical CSV, or None if there is no data."""
         if not c.garden_data_path.exists():
             return None
         last_row = None
@@ -193,6 +210,7 @@ class TelegramDirector:
         return last_row
 
     def _closest_row(self, target_dt):
+        """Returns the row of the historical CSV closest in time to target_dt."""
         if not c.garden_data_path.exists():
             return None
 
@@ -209,6 +227,7 @@ class TelegramDirector:
         return best_row
 
     def _format_row(self, header, row):
+        """Formats a CSV row into readable text, including its predictions."""
         lines = [header, ""]
         for key, value in row.items():
             if key == "Time" or key.startswith("label_"):
@@ -231,6 +250,7 @@ class TelegramDirector:
         return "\n".join(lines)
 
     def _send_message(self, chat_id, text):
+        """Sends a text message to a chat_id."""
         try:
             response = requests.post(f"{self._api_base}/sendMessage", json={"chat_id": chat_id, "text": text}, timeout=10)
             if response.status_code != 200:
@@ -239,6 +259,7 @@ class TelegramDirector:
             logger.error(f"Error sending Telegram message: {e}")
 
     def _send_photo(self, chat_id, image_path, caption=None):
+        """Sends a photo (with an optional caption) to a chat_id."""
         try:
             with open(image_path, "rb") as photo:
                 data = {"chat_id": chat_id}

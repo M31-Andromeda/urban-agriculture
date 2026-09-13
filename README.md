@@ -81,7 +81,7 @@ needing to log in and start it by hand.
 ### Why not App Lab
 
 The project still follows the standard App Lab layout (`app.yaml`, `sketch/`, `python/`) and can be imported
-in later with `arduino-app-cli app new --from-app`, but day-to-day development happens with a plain
+ later with `arduino-app-cli app new --from-app`, but day-to-day development happens with a plain
 `arduino-cli` setup and a Python virtual environment instead — see `documentacion` for why.
 
 ## Tech stack
@@ -95,15 +95,20 @@ in later with `arduino-app-cli app new --from-app`, but day-to-day development h
 | Reporting | Google Sheets (Apps Script webhook), Telegram Bot API (hand-rolled client) |
 | Deployment | systemd service, always-on on the board |
 
-## Running it
+## Running it manually (no Applab)
 
 ```bash
+# Environment and dependencies
+python3 -m venv arduino_env
+source arduino_env/bin/activate
+pip install -r requirements.txt
+
 # MCU side — compile and flash
 cd sketch
 arduino-cli compile --upload --fqbn arduino:zephyr:unoq .
 
 # MPU side — run the app
-source ~/arduino_env/bin/activate
+source arduino_env/bin/activate
 cd python
 export URL_APPSCRIPT="https://script.google.com/macros/s/XXX/exec"
 export TELEGRAM_BOT_TOKEN="123456:ABC-your-bot-token"
@@ -113,7 +118,7 @@ python3 main.py
 Both environment variables are optional at startup — if either is missing, that one feature (Sheets
 logging or the Telegram bot) logs a warning and quietly no-ops, and the rest of the system keeps running.
 
-The environment used in this project, has a complete copy of the arduino class, that enable to use locally
+The repository of this project, has a complete copy of the arduino app_utils class, that enable to use locally
 functionalities stored in arduino.app_utils
 
 To retrain the decision model:
