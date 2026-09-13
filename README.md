@@ -188,7 +188,7 @@ physical rebuild.
 inference, and the pump/fans drawing current when active, the current battery setup is undersized for
 sustained, unattended operation — fine for a demo window, not yet for a real deployment cycle.
 
-See `documentacion.md` for the rest of the technical postmortem (sensor/firmware quirks, integration
+See `documentacion` for the rest of the technical postmortem (sensor/firmware quirks, integration
 issues, and the physical build in more detail) — still being filled in with photos and screenshots.
 
 ## What's next
