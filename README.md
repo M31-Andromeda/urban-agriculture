@@ -33,22 +33,22 @@ pump and fans ready to act automatically when the decision system calls for it.
 ## Architecture
 
 ```
-                    ┌───────────────────────────── MCU (Zephyr sketch) ───────────────────────────────┐
-                    │  sht_30.ino · bme680.ino · modulino_light.ino · ina219.ino · moisture_v1.2.ino  │
-                    │  actuator.ino (water pump / fans)                                               │
-                    └──────────────────────────────────┬──────────────────────────────────────────────┘
-                                                Router Bridge (RPC)
-                    ┌──────────────────────────────────┴─────────────────────────────────────────────────┐
-                    │                          MPU (Python, python/main.py)                              │
-                    │                                                                                    │
-                    │   SensorOrchestra ──► GardenState ◄── ImageOrchestra (FOMO-AD, Edge Impulse)       │
-                    │                            │                                                       │
-                    │                    DecisionOrchestra (RandomForest)                                │
-                    │                            │                                                       │
-                    │             ┌──────────────┼──────────────┐                                        │
-                    │      ActuatorOrchestra  DataOrchestra  TelegramDirector                            │
-                    │      (pump/fans)      (CSV + Sheets)   (alerts + bot commands)                     │
-                    └────────────────────────────────────────────────────────────────────────────────────┘
+              ┌───────────────────────────── MCU (Zephyr sketch) ───────────────────────────────┐
+              │  sht_30.ino · bme680.ino · modulino_light.ino · ina219.ino · moisture_v1.2.ino  │
+              │  actuator.ino (water pump / fans)                                               │
+              └──────────────────────────────────┬──────────────────────────────────────────────┘
+                                          Router Bridge (RPC)
+              ┌──────────────────────────────────┴─────────────────────────────────────────────────┐
+              │                          MPU (Python, python/main.py)                              │
+              │                                                                                    │
+              │   SensorOrchestra ──► GardenState ◄── ImageOrchestra (FOMO-AD, Edge Impulse)       │
+              │                            │                                                       │
+              │                    DecisionOrchestra (RandomForest)                                │
+              │                            │                                                       │
+              │             ┌──────────────┼──────────────┐                                        │
+              │      ActuatorOrchestra  DataOrchestra  TelegramDirector                            │
+              │      (pump/fans)      (CSV + Sheets)   (alerts + bot commands)                     │
+              └────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 Every orchestra owns one concern and reads/writes a single shared `GardenState` object under a lock — no
