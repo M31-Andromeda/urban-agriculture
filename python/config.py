@@ -33,7 +33,7 @@ garden_data_path = data_directory / "garden_data.csv"
 telegram_subscribers_path = data_directory / "telegram_subscribers.json"
 raw_image_path = data_directory / "current_image.jpg"
 output_image_path = data_directory / "output_image.jpg"
-image_model_path = str(vision_model_directory / "fomo-ad_vision_model_5_0.eim")
+image_model_path = str(vision_model_directory / "fomo-ad_vision_model_6_0.eim")
 
 decision_model_name = "decision_model.joblib"
 

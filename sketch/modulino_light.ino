@@ -24,24 +24,24 @@ String read_modulino_light() {
     Wire.write(0x0A);
     Wire.endTransmission(false);
 
-    uint32_t raw_ir = 0;
-    if (Wire.requestFrom(0x53, 3) >= 3) {
-        raw_ir = Wire.read() | (Wire.read() << 8) | ((uint32_t)Wire.read() << 16);
-        raw_ir &= 0x0FFFFF;
+    if (Wire.requestFrom(0x53, 3) < 3) {
+        return "error";  // I2C read failed - do not report this as "0 lux" (looks like night)
     }
+    uint32_t raw_ir = Wire.read() | (Wire.read() << 8) | ((uint32_t)Wire.read() << 16);
+    raw_ir &= 0x0FFFFF;
 
     // --- READ AMBIENT LIGHT ---
     Wire.beginTransmission(0x53);
     Wire.write(0x0D);
     Wire.endTransmission(false);
-    
-    uint32_t raw_amb = 0;
-    if (Wire.requestFrom(0x53, 3) >= 3) {
-        raw_amb = Wire.read() | (Wire.read() << 8) | ((uint32_t)Wire.read() << 16);
-        raw_amb &= 0x0FFFFF; 
+
+    if (Wire.requestFrom(0x53, 3) < 3) {
+        return "error";  // I2C read failed - do not report this as "0 lux" (looks like night)
     }
+    uint32_t raw_amb = Wire.read() | (Wire.read() << 8) | ((uint32_t)Wire.read() << 16);
+    raw_amb &= 0x0FFFFF;
 
     float amb = (float)raw_amb * 0.6;
-    
+
     return String(amb, 2) + "," + String(raw_ir);
 }
