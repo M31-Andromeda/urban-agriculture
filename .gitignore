@@ -2,6 +2,8 @@ arduino_env/
 venv/
 env/
 
+documentacion.md
+REPLICATION.md
 
 __pycache__/
 *.pyc
