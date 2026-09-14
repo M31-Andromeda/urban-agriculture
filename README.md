@@ -7,7 +7,7 @@ a project by:
 
 An end-to-end monitoring and decision system for a real urban garden, built entirely by the Urban Agriculture
 Group — hardware and software both — around an **Arduino UNO Q**, over the summer of 2026. Every part of the 
-physical build (the wooden enclosure included) and the software arquitecture has been designed and written 
+physical build (the wooden enclosure included) and the software architecture has been designed and written 
 by our team from scratch.
 
 The system reads environmental, soil, light, and power-consumption sensors every cycle, runs a trained
@@ -104,7 +104,8 @@ needing to log in and start it by hand.
 
 The project still follows the standard App Lab layout (`app.yaml`, `sketch/`, `python/`) and can be imported
  later with `arduino-app-cli app new --from-app`, but day-to-day development happens with a plain
-`arduino-cli` setup and a Python virtual environment instead — see `documentation` for why.
+`arduino-cli` setup and a Python virtual environment instead — see the
+[project documentation](UrbanAgriculture_project_documentation.pdf) for why.
 
 ## Tech stack
 
@@ -117,7 +118,7 @@ The project still follows the standard App Lab layout (`app.yaml`, `sketch/`, `p
 | Reporting | Google Sheets (Apps Script webhook), Telegram Bot API (hand-rolled client) |
 | Deployment | systemd service, always-on on the board |
 
-## Running it manually (no Applab no Systemctl)
+## Running it manually (no App Lab, no systemctl)
 
 ```bash
 # Environment and dependencies
