@@ -56,6 +56,14 @@ class Director:
         self.actuator_orchestra = ActuatorOrchestra(self.telegram_director)
         self.image_orchestra = ImageOrchestra(self.garden)
 
+        self.telegram_director.notify("SYSTEM_INIT")
+
+    def stop(self):
+        """Cleanup on shutdown (Ctrl+C, systemctl stop): make sure actuators are off."""
+        logger.info("Shutting down: stopping all actuators.")
+        self.actuator_orchestra.stop_all()
+        self.telegram_director.notify("SYSTEM_STOPPED")
+
     @brick.loop
     def run(self):
         """Runs one full cycle; a failure in any step does not stop the following cycles."""

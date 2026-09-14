@@ -15,6 +15,7 @@ import config as c
 logger = Logger("Telegram")
 
 ALERT_MESSAGES = {
+    "SYSTEM_INIT":"🟢 Garden monitoring system initialized and operational.",
     "WATER": "Watering started: soil moisture below baseline.",
     "EXCESS_WATER": "Excess soil moisture detected. Watering held off.",
     "HYDRIC_STRESS_ALERT": "⚠️ Hydric stress alert: soil moisture is critically low.",
@@ -24,6 +25,7 @@ ALERT_MESSAGES = {
     "NOT_ABLE_TO_WATER": "Watering was needed but the water pump could not be activated.",
     "NOT_ABLE_TO_VENTILATE": "Ventilation was needed but the fans could not be activated.",
     "ANOMALY_DETECTED": "⚠️ Visual anomaly detected in the garden camera.",
+    "SYSTEM_STOPPED": "🔴 Garden monitoring system has been stopped.",
 }
 
 
