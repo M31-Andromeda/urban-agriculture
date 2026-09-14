@@ -104,7 +104,7 @@ class SyntheticDataGenerator:
         if max_anomaly > c.THRESHOLDS["max_anomaly_allowed"] and light > c.THRESHOLDS["camera_lux_threshold"]:
             return "ANOMALY_DETECTED"
 
-        if moisture < moist_low or moisture < c.THRESHOLDS["moist_absolute_floor_pct"]:
+        if moisture < moist_low or moisture < c.THRESHOLDS["moist_absolute_low_pct"]:
             if power < (c.THRESHOLDS["pumps_max_consum"] + c.THRESHOLDS["uno_q_consum"]):
                 return "NOT_ABLE_TO_WATER"
             return "WATER"

@@ -40,6 +40,14 @@ class DecisionOrchestra:
         df = pd.DataFrame(predictor)
         df["moisture_vs_baseline"] = df["soil_moisture_(%)"] - df["soil_moisture_baseline"]
 
+        if df[c.FEATURES].isna().any(axis=None):
+            # A failed sensor reading leaves NaN in the features; the model can't handle
+            # that (and was never trained on this label), so skip prediction this cycle.
+            with self.garden.lock:
+                self.garden.predictions = {"INSUFFICIENT_DATA": "1.00"}
+            logger.warning("Sensor reading incomplete this cycle (NaN in features); skipping model prediction.")
+            return
+
         probs = self.model.predict_proba(df[c.FEATURES])
         
         raw_top = sorted(zip(self.model.classes_, probs[0]), key=lambda x: -x[1])[:3]

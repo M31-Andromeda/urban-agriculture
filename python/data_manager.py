@@ -30,9 +30,14 @@ class DataOrchestra:
         
     def update_data(self):
         """Copies the current readings and predictions from the shared GardenState."""
+        label_keys = ["label_1", "label_2", "label_3"]
         with self.garden.lock:
             self.data = self.garden.sensors_readings.copy()
-            self.labels = dict(zip(["label_1", "label_2", "label_3"], [f"{label}: {p}" for label, p in self.garden.predictions.items()]))
+            formatted = [f"{label}: {p}" for label, p in self.garden.predictions.items()]
+        # Fewer than 3 predictions (e.g. INSUFFICIENT_DATA) still fill every column, so the
+        # CSV and the Google Sheet always have the same shape.
+        formatted += [""] * (len(label_keys) - len(formatted))
+        self.labels = dict(zip(label_keys, formatted))
             
     def _count_csv_rows(self):
         """Counts the existing data rows in the CSV (excluding the header)."""
